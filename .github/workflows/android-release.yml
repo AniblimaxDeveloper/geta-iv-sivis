@@ -52,13 +52,21 @@ jobs:
         run: |
           godot --headless --path . --import || true
 
-      - name: Export unsigned APK
+      # --- LANGKAH BARU: Install Android Build Template ---
+      - name: Install Android Build Template
+        timeout-minutes: 5
+        run: |
+          godot --headless --path . --install-android-build-template || true
+      # ----------------------------------------------------
+
+      - name: Export unsigned APK (Verbose)
         timeout-minutes: 5
         run: |
           mkdir -p build
-          godot --headless --path . --export-release "Android" build/geta-iv-sivis-unsigned.apk
+          # Menambahkan --verbose untuk melihat error detail jika masih gagal
+          godot --headless --verbose --path . --export-release "Android" build/geta-iv-sivis-unsigned.apk
 
-      # --- LANGKAH BARU: VERIFIKASI KEYSTORE ---
+      # --- LANGKAH VERIFIKASI & SIGNING (Sama seperti sebelumnya) ---
       - name: Decode and Verify Keystore
         run: |
           printf "%s" "$KEYSTORE_BASE64" | base64 -d > release.keystore
@@ -67,7 +75,6 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-      # -----------------------------------------
 
       - name: Sign APK with apksigner
         run: |
