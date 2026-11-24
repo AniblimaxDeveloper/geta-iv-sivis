@@ -25,7 +25,7 @@ size = Vector3(0.1, 0.1, 0.4)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
-background_color = Color(0.1, 0.05, 0.15, 1)
+background_color = Color(0.2, 0.1, 0.3, 1) # Langit Senja
 ambient_light_source = 2
 ambient_light_color = Color(0.6, 0.6, 0.7, 1)
 tonemap_mode = 2
@@ -43,7 +43,7 @@ light_energy = 1.5
 shadow_enabled = true
 
 [node name="Player" type="CharacterBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 0) # Karakter diangkat ke Y=2
 script = ExtResource("2_player")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
@@ -80,19 +80,13 @@ position = Vector3(0.2, -0.9, 0)
 mesh = SubResource("BoxMesh_l")
 position = Vector3(-0.2, -0.9, 0)
 
-[node name="MuzzleFlash" type="OmniLight3D" parent="Player"]
-light_color = Color(1, 0.8, 0)
-light_energy = 5.0
-omni_range = 5.0
-visible = false
-
 [node name="CameraPivot" type="Node3D" parent="Player"]
-position = Vector3(0, 0.6, 0)
+position = Vector3(0, 1.2, 0) # Titik poros kamera di atas pundak
 
 [node name="SpringArm3D" type="SpringArm3D" parent="Player/CameraPivot"]
-transform = Transform3D(1, 0, 0, 0, 0.9, 0.4, 0, -0.4, 0.9, 0, 0, 0)
-spring_length = 6.0
-margin = 0.5
+transform = Transform3D(1, 0, 0, 0, 0.96, 0.26, 0, -0.26, 0.96, 0, 0, 0) # Miring sedikit ke bawah
+spring_length = 5.0
+margin = 0.5 # Jarak aman agar tidak menembus gedung/tanah
 
 [node name="Camera3D" type="Camera3D" parent="Player/CameraPivot/SpringArm3D"]
 
@@ -108,7 +102,7 @@ theme_override_font_sizes/font_size = 48
 text = "$50000"
 
 [node name="WantedLabel" type="Label" parent="UI"]
-offset_left = 1150.0
+offset_left = 1100.0
 offset_top = 20.0
 offset_right = 1260.0
 offset_bottom = 80.0
@@ -117,12 +111,12 @@ theme_override_font_sizes/font_size = 48
 text = "0 ★"
 
 [node name="AmmoLabel" type="Label" parent="UI"]
-offset_left = 1150.0
-offset_top = 80.0
-offset_right = 1260.0
+offset_left = 20.0
+offset_top = 80.0 # Pindah ke kiri bawah uang agar tidak terpotong
+offset_right = 400.0
 offset_bottom = 120.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 36
 text = "AMMO: 150"
 
 [node name="HealthBar" type="ProgressBar" parent="UI"]
@@ -181,13 +175,5 @@ offset_right = 1030.0
 offset_bottom = 450.0
 text = "SHOOT"
 
-[node name="CarBtn" type="Button" parent="TouchControls"]
-offset_left = 1150.0
-offset_top = 550.0
-offset_right = 1260.0
-offset_bottom = 650.0
-text = "CAR"
-
 [connection signal="pressed" from="TouchControls/JumpBtn" to="TouchControls" method="_on_jump_btn_pressed"]
 [connection signal="pressed" from="TouchControls/ShootBtn" to="TouchControls" method="_on_shoot_btn_pressed"]
-[connection signal="pressed" from="TouchControls/CarBtn" to="TouchControls" method="_on_car_btn_pressed"]
