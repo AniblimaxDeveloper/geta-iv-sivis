@@ -39,16 +39,20 @@ jobs:
 
       - name: Download Godot export templates
         run: |
-          mkdir -p "$HOME/.local/share/godot/export_templates"
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.3.stable"
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
           unzip -q Godot_v4.3-stable_export_templates.tpz
-          # PERBAIKAN: Pindahkan isi folder 'templates' ke tempat yang dibaca Godot
-          mkdir -p "$HOME/.local/share/godot/export_templates/4.3.stable" && mv templates/* "$HOME/.local/share/godot/export_templates/4.3.stable/"
+          mv templates/* "$HOME/.local/share/godot/export_templates/4.3.stable/"
 
       - name: Import Godot project
         run: |
           godot --headless --path . --import || true
           godot --headless --path . --editor --quit || true
+
+      - name: Inject Editor Settings (SDK & Java Paths)
+        run: |
+          godot --headless --path . --set_editor_setting "export/android/android_sdk_path" "$ANDROID_SDK_ROOT"
+          godot --headless --path . --set_editor_setting "export/android/java_sdk_path" "$JAVA_HOME"
 
       - name: Export unsigned APK
         run: |
