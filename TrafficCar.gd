@@ -1,5 +1,5 @@
 extends VehicleBody3D
-var speed: float = 500.0
+var speed: float = 600.0
 var time: float = 0.0
 
 func _physics_process(delta):

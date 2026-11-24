@@ -5,51 +5,61 @@ extends Node3D
 @onready var hud_health = $UI/HealthBar
 @onready var hud_wanted = $UI/WantedLabel
 @onready var hud_ammo = $UI/AmmoLabel
-@onready var hud_mission = $UI/MissionLabel
 @onready var sun = $DirectionalLight3D
 @onready var radar = $UI/Radar
 
 var wanted_level: int = 0
 var police_spawned: bool = false
 var time_of_day: float = 0.0
-var mission_active: bool = false
 
 func _ready():
     generate_city()
-    spawn_vehicles(15)
-    spawn_pedestrians(40)
-    spawn_mission()
+    spawn_vehicles(20)
+    spawn_pedestrians(50)
 
 func _process(delta):
     hud_money.text = "$" + str(player.money)
     hud_health.value = player.health
     hud_wanted.text = "WANTED: " + str(wanted_level) + " ★"
     hud_ammo.text = "AMMO: " + str(player.ammo)
-    radar.queue_redraw() # Update Radar setiap frame
+    radar.queue_redraw()
     
-    # Siklus Siang-Malam
     time_of_day += delta * 0.05
     sun.rotation.x = sin(time_of_day) * 1.5
 
 func generate_city():
+    # 1. Lantai Aspal
     var floor = MeshInstance3D.new()
     var plane = PlaneMesh.new()
     plane.size = Vector2(600, 600)
     floor.mesh = plane
     var f_mat = StandardMaterial3D.new()
-    f_mat.albedo_color = Color(0.1, 0.1, 0.12)
+    f_mat.albedo_color = Color(0.08, 0.08, 0.1)
     floor.material_override = f_mat
     add_child(floor)
 
+    # 2. Pantai (Water)
+    var water = MeshInstance3D.new()
+    var w_plane = PlaneMesh.new()
+    w_plane.size = Vector2(1000, 1000)
+    water.mesh = w_plane
+    var w_mat = StandardMaterial3D.new()
+    w_mat.albedo_color = Color(0.1, 0.4, 0.8)
+    w_mat.metallic = 0.8
+    w_mat.roughness = 0.1
+    water.material_override = w_mat
+    water.position = Vector3(0, -0.5, -400) # Air di luar kota
+    add_child(water)
+
+    # 3. Grid Kota & Lampu
     var block_size = 80
     for x in range(-3, 4):
         for z in range(-3, 4):
-            # Gedung Utama
             var b = StaticBody3D.new()
             var m = MeshInstance3D.new()
             var b_box = BoxMesh.new()
             var w = randf_range(20, 40)
-            var h = randf_range(60, 180)
+            var h = randf_range(50, 160)
             var d = randf_range(20, 40)
             b_box.size = Vector3(w, h, d)
             m.mesh = b_box
@@ -57,7 +67,7 @@ func generate_city():
             var mat = StandardMaterial3D.new()
             mat.albedo_color = Color(0.1, 0.15, 0.2)
             mat.emission_enabled = true
-            mat.emission = Color(0.1, 0.4, 0.8) * randf_range(0.2, 0.5) # Jendela Kaca
+            mat.emission = Color(0.1, 0.4, 0.8) * randf_range(0.2, 0.5)
             m.material_override = mat
             
             var c = CollisionShape3D.new()
@@ -69,44 +79,14 @@ func generate_city():
             b.add_child(m)
             b.add_child(c)
             add_child(b)
-
-func spawn_mission():
-    var mission = Area3D.new()
-    mission.set_script(load("res://Mission.gd"))
-    mission.main_node = self
-    
-    var col = CollisionShape3D.new()
-    var cyl = CylinderShape3D.new()
-    cyl.radius = 3.0
-    cyl.height = 10.0
-    col.shape = cyl
-    mission.add_child(col)
-    
-    var mesh = MeshInstance3D.new()
-    var cyl_mesh = CylinderMesh.new()
-    cyl_mesh.top_radius = 3.0
-    cyl_mesh.bottom_radius = 3.0
-    cyl_mesh.height = 10.0
-    mesh.mesh = cyl_mesh
-    var mat = StandardMaterial3D.new()
-    mat.albedo_color = Color(1, 1, 0)
-    mat.emission_enabled = true
-    mat.emission = Color(1, 1, 0)
-    mesh.material_override = mat
-    mission.add_child(mesh)
-    
-    mission.position = Vector3(randf_range(-150, 150), 5.0, randf_range(-150, 150))
-    add_child(mission)
-    mission_active = true
-    hud_mission.text = "MISSION: Pergi ke penanda kuning!"
-
-func complete_mission():
-    player.add_money(1000)
-    player.add_ammo(50)
-    hud_mission.text = "MISSION PASSED! +$1000 & +50 Ammo"
-    mission_active = false
-    await get_tree().create_timer(3.0).timeout
-    spawn_mission()
+            
+    for i in range(30):
+        var light = OmniLight3D.new()
+        light.light_color = Color(1.0, 0.2, 0.8) if randf() > 0.5 else Color(0.2, 0.8, 1.0)
+        light.light_energy = 8.0
+        light.omni_range = 30.0
+        light.position = Vector3(randf_range(-250, 250), 10, randf_range(-250, 250))
+        add_child(light)
 
 func spawn_vehicles(amount: int):
     for i in range(amount):
@@ -128,6 +108,13 @@ func spawn_vehicles(amount: int):
         mat.albedo_color = Color(randf(), 0.2, randf())
         mesh.material_override = mat
         car.add_child(mesh)
+        
+        # Lampu Mobil
+        var light = SpotLight3D.new()
+        light.position = Vector3(0, 0, -2.5)
+        light.spot_range = 20.0
+        light.light_energy = 2.0
+        car.add_child(light)
         
         for w in [[1.2, -0.5, 1.8], [-1.2, -0.5, 1.8], [1.2, -0.5, -1.8], [-1.2, -0.5, -1.8]]:
             var wheel = VehicleWheel3D.new()

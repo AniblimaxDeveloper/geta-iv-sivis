@@ -6,7 +6,7 @@ extends CharacterBody3D
 
 var money: int = 0
 var health: float = 100.0
-var ammo: int = 50
+var ammo: int = 100
 var input_dir: Vector2 = Vector2.ZERO
 var current_vehicle: VehicleBody3D = null
 var walk_time: float = 0.0
@@ -16,13 +16,14 @@ var walk_time: float = 0.0
 @onready var right_leg = $MeshRoot/RightLeg
 @onready var left_arm = $MeshRoot/LeftArm
 @onready var right_arm = $MeshRoot/RightArm
+@onready var weapon = $MeshRoot/Weapon
 @onready var camera_pivot = $CameraPivot
 @onready var spring_arm = $CameraPivot/SpringArm3D
 @onready var camera = $CameraPivot/SpringArm3D/Camera3D
 
 func _physics_process(delta):
     if current_vehicle:
-        current_vehicle.engine_force = -input_dir.y * 1800.0
+        current_vehicle.engine_force = -input_dir.y * 2000.0
         current_vehicle.steering = -input_dir.x * 0.6
         global_position = current_vehicle.global_position + Vector3(0, 3.0, 0)
         mesh_root.visible = false
@@ -62,8 +63,13 @@ func jump():
 
 func shoot():
     if current_vehicle or ammo <= 0: return
-    
     ammo -= 1
+    
+    # Efek visual tembakan
+    weapon.visible = true
+    await get_tree().create_timer(0.1).timeout
+    weapon.visible = false
+
     var space_state = get_world_3d().direct_space_state
     var screen_center = get_viewport().get_visible_rect().size / 2
     var origin = camera.project_ray_origin(screen_center)
@@ -92,4 +98,3 @@ func take_damage(amount: float):
     if health <= 0: get_tree().reload_current_scene()
 
 func add_money(amount: int): money += amount
-func add_ammo(amount: int): ammo += amount
