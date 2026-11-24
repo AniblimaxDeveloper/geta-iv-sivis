@@ -1,8 +1,8 @@
 extends CharacterBody3D
-var speed: float = 12.0
+var speed: float = 14.0
 var target: Node3D
 var health: int = 100
-var shoot_cooldown: float = 1.5
+var shoot_cooldown: float = 2.0
 
 func _ready():
     target = get_node_or_null("../../Player")
@@ -25,18 +25,13 @@ func _physics_process(delta):
         else:
             velocity.x = 0
             velocity.z = 0
-            look_at(Vector3(target.global_position.x, global_position.y, target.global_position.z), Vector3.UP)
-            
-            # Tembak Pemain
             if shoot_cooldown <= 0:
-                shoot_cooldown = 1.5
-                if target.has_method("take_damage"):
-                    target.take_damage(10.0)
+                shoot_cooldown = 2.0
+                var main = get_node_or_null("../../Main")
+                if main: main.player_take_damage(10)
     move_and_slide()
 
 func take_damage(amount: int):
     health -= amount
-    $Mesh.material_override.albedo_color = Color(1, 1, 1)
-    await get_tree().create_timer(0.1).timeout
-    if health > 0: $Mesh.material_override.albedo_color = Color(0, 0.2, 1)
-    else: queue_free()
+    if health <= 0:
+        queue_free()

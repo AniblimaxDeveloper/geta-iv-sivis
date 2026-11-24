@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://Main.gd" id="1_main"]
 [ext_resource type="Script" path="res://Player.gd" id="2_player"]
@@ -16,8 +16,11 @@ height = 1.2
 radius = 0.3
 height = 0.6
 
-[sub_resource type="BoxMesh" id="BoxMesh_limb"]
-size = Vector3(0.2, 0.8, 0.2)
+[sub_resource type="BoxMesh" id="BoxMesh_arm"]
+size = Vector3(0.2, 0.7, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_leg"]
+size = Vector3(0.25, 0.8, 0.25)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -54,21 +57,33 @@ position = Vector3(0, -0.3, 0)
 mesh = SubResource("SphereMesh_head")
 position = Vector3(0, 0.6, 0)
 
-[node name="LeftArm" type="MeshInstance3D" parent="Player/MeshRoot"]
-mesh = SubResource("BoxMesh_limb")
-position = Vector3(0.5, -0.1, 0)
+[node name="LeftArmPivot" type="Node3D" parent="Player/MeshRoot"]
+position = Vector3(0.45, 0.2, 0)
 
-[node name="RightArm" type="MeshInstance3D" parent="Player/MeshRoot"]
-mesh = SubResource("BoxMesh_limb")
-position = Vector3(-0.5, -0.1, 0)
+[node name="ArmMesh" type="MeshInstance3D" parent="Player/MeshRoot/LeftArmPivot"]
+mesh = SubResource("BoxMesh_arm")
+position = Vector3(0, -0.35, 0)
 
-[node name="LeftLeg" type="MeshInstance3D" parent="Player/MeshRoot"]
-mesh = SubResource("BoxMesh_limb")
-position = Vector3(0.2, -0.9, 0)
+[node name="RightArmPivot" type="Node3D" parent="Player/MeshRoot"]
+position = Vector3(-0.45, 0.2, 0)
 
-[node name="RightLeg" type="MeshInstance3D" parent="Player/MeshRoot"]
-mesh = SubResource("BoxMesh_limb")
-position = Vector3(-0.2, -0.9, 0)
+[node name="ArmMesh" type="MeshInstance3D" parent="Player/MeshRoot/RightArmPivot"]
+mesh = SubResource("BoxMesh_arm")
+position = Vector3(0, -0.35, 0)
+
+[node name="LeftLegPivot" type="Node3D" parent="Player/MeshRoot"]
+position = Vector3(0.15, -0.9, 0)
+
+[node name="LegMesh" type="MeshInstance3D" parent="Player/MeshRoot/LeftLegPivot"]
+mesh = SubResource("BoxMesh_leg")
+position = Vector3(0, -0.4, 0)
+
+[node name="RightLegPivot" type="Node3D" parent="Player/MeshRoot"]
+position = Vector3(-0.15, -0.9, 0)
+
+[node name="LegMesh" type="MeshInstance3D" parent="Player/MeshRoot/RightLegPivot"]
+mesh = SubResource("BoxMesh_leg")
+position = Vector3(0, -0.4, 0)
 
 [node name="CameraPivot" type="Node3D" parent="Player"]
 position = Vector3(0, 0.6, 0)
@@ -99,6 +114,15 @@ offset_bottom = 80.0
 theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
 theme_override_font_sizes/font_size = 48
 text = "0 ★"
+
+[node name="AmmoLabel" type="Label" parent="UI"]
+offset_left = 1180.0
+offset_top = 80.0
+offset_right = 1260.0
+offset_bottom = 130.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "AMMO: 100"
 
 [node name="HealthBar" type="ProgressBar" parent="UI"]
 offset_left = 20.0
@@ -136,10 +160,26 @@ offset_bottom = 150.0
 color = Color(0.1, 0.6, 1, 0.7)
 
 [node name="JumpButton" type="Button" parent="TouchControls"]
+offset_left = 1050.0
+offset_top = 300.0
+offset_right = 1200.0
+offset_bottom = 450.0
+text = "JUMP"
+
+[node name="ShootButton" type="Button" parent="TouchControls"]
+offset_left = 880.0
+offset_top = 300.0
+offset_right = 1030.0
+offset_bottom = 450.0
+text = "SHOOT"
+
+[node name="ActionButton" type="Button" parent="TouchControls"]
 offset_left = 1150.0
 offset_top = 550.0
 offset_right = 1260.0
 offset_bottom = 650.0
-text = "JUMP"
+text = "CAR"
 
 [connection signal="pressed" from="TouchControls/JumpButton" to="TouchControls" method="_on_jump_button_pressed"]
+[connection signal="pressed" from="TouchControls/ShootButton" to="TouchControls" method="_on_shoot_button_pressed"]
+[connection signal="pressed" from="TouchControls/ActionButton" to="TouchControls" method="_on_action_button_pressed"]
