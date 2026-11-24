@@ -5,7 +5,6 @@ extends CanvasLayer
 @onready var player = get_node("../Player")
 
 var touch_index = -1
-var look_index = -1
 var base_center = Vector2.ZERO
 var max_distance = 100.0
 
@@ -15,7 +14,7 @@ func _ready():
 
 func _input(event):
     if event is InputEventScreenTouch:
-        if event.pressed and event.position.x < 600 and touch_index == -1:
+        if event.pressed and touch_index == -1:
             touch_index = event.index
             base_center = event.position
             joystick_base.global_position = base_center - joystick_base.size / 2
@@ -27,23 +26,11 @@ func _input(event):
             joystick_base.visible = false
             joystick_knob.visible = false
             player.input_dir = Vector2.ZERO
-            
-        if event.pressed and event.position.x >= 600:
-            look_index = event.index
-        elif not event.pressed and event.index == look_index:
-            look_index = -1
 
-    if event is InputEventScreenDrag:
-        if event.index == touch_index:
-            var diff = event.position - base_center
-            if diff.length() > max_distance: diff = diff.normalized() * max_distance
-            joystick_knob.global_position = base_center + diff - joystick_knob.size / 2
-            player.input_dir = diff / max_distance
-        elif event.index == look_index:
-            player.camera_pivot.rotate_y(-event.relative.x * 0.01)
-            player.spring_arm.rotate_x(-event.relative.y * 0.01)
-            player.spring_arm.rotation.x = clamp(player.spring_arm.rotation.x, deg_to_rad(-70), deg_to_rad(30))
+    if event is InputEventScreenDrag and event.index == touch_index:
+        var diff = event.position - base_center
+        if diff.length() > max_distance: diff = diff.normalized() * max_distance
+        joystick_knob.global_position = base_center + diff - joystick_knob.size / 2
+        player.input_dir = diff / max_distance
 
-func _on_jump_button_pressed(): player.jump()
-func _on_shoot_button_pressed(): player.shoot()
 func _on_action_button_pressed(): player.interact()
