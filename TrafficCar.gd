@@ -1,9 +1,10 @@
 extends VehicleBody3D
-var target_speed: float = 600.0
+var target_speed: float = 500.0
 var time: float = 0.0
 var ray: RayCast3D
 
 func _ready():
+    add_to_group("vehicles")
     ray = RayCast3D.new()
     ray.target_position = Vector3(0, 0, -8)
     add_child(ray)

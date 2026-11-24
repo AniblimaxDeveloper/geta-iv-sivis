@@ -5,6 +5,7 @@ var health: int = 100
 var shoot_cd: float = 1.5
 
 func _ready():
+    add_to_group("police")
     target = get_node_or_null("../../Player")
     if not target: target = get_node_or_null("../Player")
 
