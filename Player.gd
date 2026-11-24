@@ -6,7 +6,8 @@ extends CharacterBody3D
 
 var money: int = 0
 var health: float = 100.0
-var ammo: int = 100
+var ammo: int = 150
+var weapon_type: int = 1 # 1 = Pistol, 2 = SMG
 var input_dir: Vector2 = Vector2.ZERO
 var current_vehicle: VehicleBody3D = null
 var walk_time: float = 0.0
@@ -20,12 +21,18 @@ var walk_time: float = 0.0
 @onready var camera_pivot = $CameraPivot
 @onready var spring_arm = $CameraPivot/SpringArm3D
 @onready var camera = $CameraPivot/SpringArm3D/Camera3D
+@onready var vignette = get_node_or_null("../../UI/DamageVignette")
 
 func _physics_process(delta):
+    if vignette:
+        if health < 40:
+            vignette.color.a = lerp(vignette.color.a, 0.5, 0.1)
+        else:
+            vignette.color.a = lerp(vignette.color.a, 0.0, 0.1)
+
     if current_vehicle:
-        # Rem dan Mundur (Sumbu Y Positif = Rem/Mundur)
         if input_dir.y > 0:
-            current_vehicle.brake = input_dir.y * 10.0
+            current_vehicle.brake = input_dir.y * 15.0
             current_vehicle.engine_force = 0
         else:
             current_vehicle.brake = 0
@@ -72,7 +79,6 @@ func shoot():
     if current_vehicle or ammo <= 0: return
     ammo -= 1
     
-    # Efek visual tembakan
     weapon.visible = true
     await get_tree().create_timer(0.1).timeout
     weapon.visible = false
@@ -85,7 +91,6 @@ func shoot():
     query.exclude = [self.get_rid()]
     var result = space_state.intersect_ray(query)
     
-    # Tracer Peluru (Garis Visual)
     var tracer = MeshInstance3D.new()
     var t_mesh = BoxMesh.new()
     t_mesh.size = Vector3(0.05, 0.05, origin.distance_to(end))
@@ -100,7 +105,6 @@ func shoot():
     tracer.look_at(end, Vector3.UP)
     get_tree().create_timer(0.1).timeout.connect(tracer.queue_free)
 
-    # Memicu Panik Warga
     var main = get_node_or_null("../../Main")
     if main: 
         main.add_wanted_level()
@@ -108,6 +112,12 @@ func shoot():
 
     if result and result.collider.has_method("take_damage"):
         result.collider.take_damage(50)
+
+func switch_weapon():
+    weapon_type = 2 if weapon_type == 1 else 1
+    var main = get_node_or_null("../../Main")
+    if main:
+        main.hud_weapon.text = "WEAPON: " + ("PISTOL" if weapon_type == 1 else "SMG")
 
 func interact():
     if current_vehicle:
@@ -124,3 +134,5 @@ func take_damage(amount: float):
     if health <= 0: get_tree().reload_current_scene()
 
 func add_money(amount: int): money += amount
+func add_ammo(amount: int): ammo += amount
+func add_health(amount: float): health = min(100.0, health + amount)

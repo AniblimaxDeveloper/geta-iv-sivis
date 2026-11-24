@@ -5,7 +5,7 @@ extends Node3D
 @onready var hud_health = $UI/HealthBar
 @onready var hud_wanted = $UI/WantedLabel
 @onready var hud_ammo = $UI/AmmoLabel
-@onready var sun = $DirectionalLight3D
+@onready var hud_weapon = $UI/WeaponLabel
 
 var wanted_level: int = 0
 var police_spawned: bool = false
@@ -14,6 +14,7 @@ func _ready():
     generate_city()
     spawn_vehicles(15)
     spawn_pedestrians(40)
+    spawn_pickups(20)
 
 func _process(_delta):
     hud_money.text = "$" + str(player.money)
@@ -22,7 +23,6 @@ func _process(_delta):
     hud_ammo.text = "AMMO: " + str(player.ammo)
 
 func generate_city():
-    # 1. Lantai Aspal
     var ground = StaticBody3D.new()
     var floor_mesh = MeshInstance3D.new()
     var plane = PlaneMesh.new()
@@ -40,11 +40,9 @@ func generate_city():
     ground.add_child(col)
     add_child(ground)
 
-    # 2. Grid Gedung & Jalan
     var block_size = 100
     for x in range(-3, 4):
         for z in range(-3, 4):
-            # Bangunan
             var b = StaticBody3D.new()
             var m = MeshInstance3D.new()
             var b_box = BoxMesh.new()
@@ -53,24 +51,20 @@ func generate_city():
             var d = randf_range(30, 50)
             b_box.size = Vector3(w, h, d)
             m.mesh = b_box
-            
             var mat = StandardMaterial3D.new()
             mat.albedo_color = Color(0.15, 0.15, 0.2)
             mat.emission_enabled = true
-            mat.emission = Color(0.2, 0.5, 0.8) * randf_range(0.1, 0.4) # Jendela biru
+            mat.emission = Color(0.2, 0.5, 0.8) * randf_range(0.1, 0.4)
             m.material_override = mat
-            
             var c = CollisionShape3D.new()
             var s = BoxShape3D.new()
             s.size = b_box.size
             c.shape = s
-            
             b.position = Vector3(x * block_size, h / 2, z * block_size)
             b.add_child(m)
             b.add_child(c)
             add_child(b)
 
-            # Marka Jalan (Garis Putih)
             for i in range(-4, 5):
                 var line = MeshInstance3D.new()
                 var l_box = BoxMesh.new()
@@ -79,11 +73,9 @@ func generate_city():
                 var l_mat = StandardMaterial3D.new()
                 l_mat.albedo_color = Color(1, 1, 1, 0.5)
                 line.material_override = l_mat
-                # Posisi di tengah jalan antar gedung
                 line.position = Vector3(x * block_size + block_size/2, 0.02, i * 20 + z * block_size)
                 add_child(line)
 
-    # 3. Pohon Palem
     for i in range(50):
         var palm = Node3D.new()
         var trunk = MeshInstance3D.new()
@@ -108,9 +100,38 @@ func generate_city():
         leaf_mat.albedo_color = Color(0.1, 0.6, 0.2)
         leaves.material_override = leaf_mat
         palm.add_child(leaves)
-        
         palm.position = Vector3(randf_range(-300, 300), 0, randf_range(-300, 300))
         add_child(palm)
+
+func spawn_pickups(amount: int):
+    for i in range(amount):
+        var pickup = Area3D.new()
+        var col = CollisionShape3D.new()
+        col.shape = BoxShape3D.new()
+        col.shape.size = Vector3(2, 2, 2)
+        var mesh = MeshInstance3D.new()
+        var box = BoxMesh.new()
+        box.size = Vector3(1.5, 1.5, 1.5)
+        mesh.mesh = box
+        
+        var is_health = randf() > 0.5
+        var mat = StandardMaterial3D.new()
+        mat.albedo_color = Color(1, 0, 0) if is_health else Color(1, 1, 0)
+        mat.emission_enabled = true
+        mat.emission = Color(1, 0, 0) if is_health else Color(1, 1, 0)
+        mesh.material_override = mat
+        
+        pickup.add_child(col)
+        pickup.add_child(mesh)
+        pickup.position = Vector3(randf_range(-200, 200), 1.0, randf_range(-200, 200))
+        pickup.body_entered.connect(_on_pickup.bind(pickup, is_health))
+        add_child(pickup)
+
+func _on_pickup(body, pickup, is_health):
+    if body == player:
+        if is_health: player.add_health(50)
+        else: player.add_ammo(100)
+        pickup.queue_free()
 
 func spawn_vehicles(amount: int):
     for i in range(amount):
@@ -123,6 +144,7 @@ func spawn_vehicles(amount: int):
         col.shape = box
         car.add_child(col)
         var mesh = MeshInstance3D.new()
+        mesh.name = "MeshInstance3D"
         var box_mesh = BoxMesh.new()
         box_mesh.size = Vector3(2.5, 1.5, 5.0)
         mesh.mesh = box_mesh
@@ -142,29 +164,27 @@ func spawn_vehicles(amount: int):
 func spawn_pedestrians(amount: int):
     for i in range(amount):
         var ped = CharacterBody3D.new()
+        ped.add_to_group("pedestrians")
         ped.set_script(load("res://Pedestrian.gd"))
         var col = CollisionShape3D.new()
         col.shape = CapsuleShape3D.new()
         ped.add_child(col)
-        
         var mesh_root = Node3D.new()
         mesh_root.name = "MeshRoot"
         var torso = MeshInstance3D.new()
         torso.mesh = CapsuleMesh.new()
         torso.position.y = 1.0
         mesh_root.add_child(torso)
-        
         var head = MeshInstance3D.new()
         head.mesh = SphereMesh.new()
         head.position.y = 1.9
         mesh_root.add_child(head)
-        
         ped.add_child(mesh_root)
         ped.position = Vector3(randf_range(-200, 200), 1.0, randf_range(-200, 200))
         add_child(ped)
 
 func panic_pedestrians():
-    var peds = get_tree().get_nodes_in_group("pedestrians") # Pastikan masuk grup
+    var peds = get_tree().get_nodes_in_group("pedestrians")
     for p in peds:
         if p.has_method("panic"):
             p.panic()
