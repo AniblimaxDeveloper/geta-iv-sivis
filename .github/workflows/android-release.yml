@@ -9,7 +9,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 20 # Batasi total maksimal 20 menit
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,11 +27,13 @@ jobs:
           packages: ''
 
       - name: Install Android SDK components
+        timeout-minutes: 5
         run: |
           sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0"
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
       - name: Download Godot 4.3 (Linux)
+        timeout-minutes: 2
         run: |
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
           unzip -q Godot_v4.3-stable_linux.x86_64.zip
@@ -38,6 +41,7 @@ jobs:
           sudo chmod +x /usr/local/bin/godot
 
       - name: Download Godot export templates
+        timeout-minutes: 5
         run: |
           mkdir -p "$HOME/.local/share/godot/export_templates/4.3.stable"
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
@@ -45,16 +49,13 @@ jobs:
           mv templates/* "$HOME/.local/share/godot/export_templates/4.3.stable/"
 
       - name: Import Godot project
+        timeout-minutes: 3
         run: |
           godot --headless --path . --import || true
-          godot --headless --path . --editor --quit || true
-
-      - name: Inject Editor Settings (SDK & Java Paths)
-        run: |
-          godot --headless --path . --set_editor_setting "export/android/android_sdk_path" "$ANDROID_SDK_ROOT"
-          godot --headless --path . --set_editor_setting "export/android/java_sdk_path" "$JAVA_HOME"
+          # (Baris --editor --quit yang bikin hang sudah dihapus)
 
       - name: Export unsigned APK
+        timeout-minutes: 5
         run: |
           mkdir -p build
           godot --headless --path . --export-release "Android" build/geta-iv-sivis-unsigned.apk
