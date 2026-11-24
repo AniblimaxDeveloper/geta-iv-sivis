@@ -6,11 +6,22 @@ extends Node2D
 
 func _ready():
     generate_city()
-    spawn_collectables(30)
+    spawn_collectables(40)
 
 func _process(_delta):
     hud_money.text = "CASH: $" + str(player.money)
     hud_health.text = "HEALTH: " + str(int(player.health)) + "%"
+
+# Fungsi untuk menggambar grid jalanan
+func _draw():
+    var grid_size = 100
+    var area_size = 2000
+    var line_color = Color(0.15, 0.15, 0.2) # Warna garis abu-abu gelap
+    
+    for x in range(-area_size, area_size, grid_size):
+        draw_line(Vector2(x, -area_size), Vector2(x, area_size), line_color, 2)
+    for y in range(-area_size, area_size, grid_size):
+        draw_line(Vector2(-area_size, y), Vector2(area_size, y), line_color, 2)
 
 func generate_city():
     for i in range(100):
@@ -25,9 +36,9 @@ func generate_city():
         rect.size = Vector2(w, h)
         collision.shape = rect
         color_rect.size = Vector2(w, h)
-        color_rect.color = Color(0.2, 0.2, 0.25)
+        color_rect.color = Color(0.2, 0.2, 0.25) 
         
-        building.position = Vector2(randf_range(-2000, 2000), randf_range(-2000, 2000))
+        building.position = Vector2(randf_range(-1800, 1800), randf_range(-1800, 1800))
         color_rect.position = -Vector2(w, h) / 2
         collision.position = Vector2.ZERO
         
