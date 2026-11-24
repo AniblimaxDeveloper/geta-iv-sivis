@@ -1,13 +1,14 @@
 extends CharacterBody3D
 
 @export var walk_speed: float = 10.0
-@export var run_speed: float = 22.0
+@export var run_speed: float = 20.0
 @export var jump_force: float = 14.0
 @export var gravity: float = 35.0
 
 var health: float = 100.0
+var armor: float = 50.0
 var stamina: float = 100.0
-var ammo: int = 150
+var ammo: int = 250
 var money: int = 50000
 var input_dir: Vector2 = Vector2.ZERO
 var is_running: bool = false
@@ -134,4 +135,8 @@ func interact():
                 break
 
 func take_damage(amount: float):
-    health -= amount
+    if armor > 0:
+        armor -= amount
+        if armor < 0: armor = 0
+    else:
+        health -= amount

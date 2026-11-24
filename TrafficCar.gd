@@ -1,5 +1,5 @@
 extends VehicleBody3D
-var target_speed: float = 500.0
+var target_speed: float = 600.0
 var time: float = 0.0
 var ray: RayCast3D
 

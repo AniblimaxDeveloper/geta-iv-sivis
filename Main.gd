@@ -3,9 +3,11 @@ extends Node3D
 @onready var player = $Player
 @onready var hud_money = $UI/MoneyLabel
 @onready var hud_health = $UI/HealthBar
+@onready var hud_armor = $UI/ArmorBar
 @onready var hud_stamina = $UI/StaminaBar
 @onready var hud_wanted = $UI/WantedLabel
 @onready var hud_ammo = $UI/AmmoLabel
+@onready var hud_mission = $UI/MissionLabel
 @onready var radar = $UI/Radar
 @onready var sun = $DirectionalLight3D
 
@@ -17,10 +19,12 @@ func _ready():
     generate_world()
     spawn_traffic(15)
     spawn_peds(20)
+    spawn_mission()
 
 func _process(delta):
     hud_money.text = "$" + str(player.money)
     hud_health.value = player.health
+    hud_armor.value = player.armor
     hud_stamina.value = player.stamina
     hud_wanted.text = str(wanted_level) + " ★"
     hud_ammo.text = "AMMO: " + str(player.ammo)
@@ -30,7 +34,6 @@ func _process(delta):
     sun.rotation.x = sin(time_of_day) * 1.2
 
 func generate_world():
-    # Lantai
     var ground = StaticBody3D.new()
     var plane = PlaneMesh.new()
     plane.size = Vector2(1000, 1000)
@@ -48,7 +51,7 @@ func generate_world():
     ground.add_child(col)
     add_child(ground)
 
-    # Gedung-gedung (Grid di sekitar pemain)
+    # Gedung & Lampu
     for x in range(-4, 5):
         for z in range(-4, 5):
             if x == 0 and z == 0: continue
@@ -75,7 +78,6 @@ func generate_world():
             b.add_child(c)
             add_child(b)
 
-    # Lampu Jalan
     for i in range(15):
         var light = OmniLight3D.new()
         light.light_color = Color(1, 0.8, 0.4)
@@ -156,6 +158,42 @@ func spawn_peds(amt: int):
         ped.add_child(root)
         ped.position = Vector3(randf_range(100, 400), 1.0, randf_range(-300, 300))
         add_child(ped)
+
+func spawn_mission():
+    var mission = Area3D.new()
+    mission.set_script(load("res://Mission.gd"))
+    mission.main = self
+    
+    var col = CollisionShape3D.new()
+    var cyl = CylinderShape3D.new()
+    cyl.radius = 4.0
+    cyl.height = 10.0
+    col.shape = cyl
+    mission.add_child(col)
+    
+    var mesh = MeshInstance3D.new()
+    var cyl_mesh = CylinderMesh.new()
+    cyl_mesh.top_radius = 4.0
+    cyl_mesh.bottom_radius = 4.0
+    cyl_mesh.height = 10.0
+    mesh.mesh = cyl_mesh
+    var mat = StandardMaterial3D.new()
+    mat.albedo_color = Color(1, 1, 0)
+    mat.emission_enabled = true
+    mat.emission = Color(1, 1, 0)
+    mesh.material_override = mat
+    mission.add_child(mesh)
+    
+    mission.position = Vector3(randf_range(-150, 150), 5.0, randf_range(-150, 150))
+    add_child(mission)
+    hud_mission.text = "MISSION: Cari tiang kuning!"
+
+func complete_mission():
+    player.money += 5000
+    player.ammo += 100
+    hud_mission.text = "MISSION PASSED! +$5000"
+    await get_tree().create_timer(3.0).timeout
+    spawn_mission()
 
 func panic_pedestrians():
     for p in get_tree().get_nodes_in_group("pedestrians"):

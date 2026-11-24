@@ -9,3 +9,6 @@ func _draw():
     for p in get_tree().get_nodes_in_group("police"):
         var offset = (p.global_position - player.global_position) * 0.5
         if offset.length() < 90: draw_circle(center + Vector2(offset.x, offset.z), 4, Color(1, 0, 0))
+    for v in get_tree().get_nodes_in_group("vehicles"):
+        var offset = (v.global_position - player.global_position) * 0.5
+        if offset.length() < 90: draw_circle(center + Vector2(offset.x, offset.z), 3, Color(0, 1, 0))
