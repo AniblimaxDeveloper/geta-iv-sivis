@@ -7,7 +7,6 @@ extends CharacterBody3D
 var money: int = 0
 var health: float = 100.0
 var ammo: int = 150
-var weapon_type: int = 1 # 1 = Pistol, 2 = SMG
 var input_dir: Vector2 = Vector2.ZERO
 var current_vehicle: VehicleBody3D = null
 var walk_time: float = 0.0
@@ -17,7 +16,7 @@ var walk_time: float = 0.0
 @onready var right_leg = $MeshRoot/RightLeg
 @onready var left_arm = $MeshRoot/LeftArm
 @onready var right_arm = $MeshRoot/RightArm
-@onready var weapon = $MeshRoot/Weapon
+@onready var weapon = $MeshRoot/RightArm/Weapon
 @onready var camera_pivot = $CameraPivot
 @onready var spring_arm = $CameraPivot/SpringArm3D
 @onready var camera = $CameraPivot/SpringArm3D/Camera3D
@@ -79,9 +78,10 @@ func shoot():
     if current_vehicle or ammo <= 0: return
     ammo -= 1
     
-    weapon.visible = true
+    # Animasi Tembak (Tangan ke depan)
+    right_arm.rotation.x = -1.5
     await get_tree().create_timer(0.1).timeout
-    weapon.visible = false
+    right_arm.rotation.x = 0.0
 
     var space_state = get_world_3d().direct_space_state
     var screen_center = get_viewport().get_visible_rect().size / 2
@@ -91,6 +91,7 @@ func shoot():
     query.exclude = [self.get_rid()]
     var result = space_state.intersect_ray(query)
     
+    # Efek Tracer
     var tracer = MeshInstance3D.new()
     var t_mesh = BoxMesh.new()
     t_mesh.size = Vector3(0.05, 0.05, origin.distance_to(end))
@@ -112,12 +113,6 @@ func shoot():
 
     if result and result.collider.has_method("take_damage"):
         result.collider.take_damage(50)
-
-func switch_weapon():
-    weapon_type = 2 if weapon_type == 1 else 1
-    var main = get_node_or_null("../../Main")
-    if main:
-        main.hud_weapon.text = "WEAPON: " + ("PISTOL" if weapon_type == 1 else "SMG")
 
 func interact():
     if current_vehicle:
