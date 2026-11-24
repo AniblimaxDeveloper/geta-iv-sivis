@@ -12,18 +12,18 @@ height = 2.0
 radius = 0.5
 height = 2.0
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sunset"]
-sky_top_color = Color(0.3, 0.1, 0.4, 1)
-sky_horizon_color = Color(0.9, 0.4, 0.2, 1)
-ground_bottom_color = Color(0.1, 0.05, 0.1, 1)
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_neon"]
+sky_top_color = Color(0.2, 0.05, 0.3, 1)
+sky_horizon_color = Color(1.0, 0.3, 0.1, 1)
+ground_bottom_color = Color(0.05, 0.05, 0.1, 1)
 ground_horizon_color = Color(0.4, 0.1, 0.2, 1)
 
-[sub_resource type="Sky" id="Sky_sunset"]
-sky_material = SubResource("ProceduralSkyMaterial_sunset")
+[sub_resource type="Sky" id="Sky_neon"]
+sky_material = SubResource("ProceduralSkyMaterial_neon")
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 2
-sky = SubResource("Sky_sunset")
+sky = SubResource("Sky_neon")
 ambient_light_source = 3
 tonemap_mode = 2
 
@@ -103,7 +103,6 @@ offset_top = 550.0
 offset_right = 1200.0
 offset_bottom = 700.0
 text = "JUMP"
-theme_override_font_sizes/font_size = 32
 
 [node name="ShootButton" type="Button" parent="TouchControls"]
 offset_left = 880.0
@@ -111,7 +110,6 @@ offset_top = 550.0
 offset_right = 1030.0
 offset_bottom = 700.0
 text = "SHOOT"
-theme_override_font_sizes/font_size = 32
 
 [node name="ActionButton" type="Button" parent="TouchControls"]
 offset_left = 1150.0
