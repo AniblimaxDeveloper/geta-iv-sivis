@@ -1,20 +1,27 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://Main.gd" id="1_main"]
 [ext_resource type="Script" path="res://Player.gd" id="2_player"]
 [ext_resource type="Script" path="res://TouchControls.gd" id="3_touch"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
-radius = 0.5
-height = 2.0
+radius = 0.4
+height = 1.8
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_player"]
-radius = 0.5
-height = 2.0
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+radius = 0.4
+height = 1.2
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+radius = 0.3
+height = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_limb"]
+size = Vector3(0.2, 0.8, 0.2)
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_neon"]
 sky_top_color = Color(0.2, 0.05, 0.3, 1)
-sky_horizon_color = Color(1.0, 0.3, 0.1, 1)
+sky_horizon_color = Color(1.0, 0.4, 0.1, 1)
 ground_bottom_color = Color(0.05, 0.05, 0.1, 1)
 ground_horizon_color = Color(0.4, 0.1, 0.2, 1)
 
@@ -42,16 +49,43 @@ script = ExtResource("2_player")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
 shape = SubResource("CapsuleShape3D_player")
+position = Vector3(0, 0.9, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Player"]
-mesh = SubResource("CapsuleMesh_player")
+[node name="MeshRoot" type="Node3D" parent="Player"]
+position = Vector3(0, 0.9, 0)
+
+[node name="Body" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("CapsuleMesh_body")
+position = Vector3(0, 0.6, 0)
+
+[node name="Head" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("SphereMesh_head")
+position = Vector3(0, 1.5, 0)
+
+[node name="LeftArm" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("BoxMesh_limb")
+position = Vector3(0.5, 0.8, 0)
+rotation = Vector3(0, 0, -0.2)
+
+[node name="RightArm" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("BoxMesh_limb")
+position = Vector3(-0.5, 0.8, 0)
+rotation = Vector3(0, 0, 0.2)
+
+[node name="LeftLeg" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("BoxMesh_limb")
+position = Vector3(0.2, 0.0, 0)
+
+[node name="RightLeg" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("BoxMesh_limb")
+position = Vector3(-0.2, 0.0, 0)
 
 [node name="CameraPivot" type="Node3D" parent="Player"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+position = Vector3(0, 1.5, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="Player/CameraPivot"]
 transform = Transform3D(1, 0, 0, 0, 0.9, 0.4, 0, -0.4, 0.9, 0, 0, 0)
-spring_length = 8.0
+spring_length = 6.0
 margin = 0.5
 
 [node name="Camera3D" type="Camera3D" parent="Player/CameraPivot/SpringArm3D"]
