@@ -6,7 +6,6 @@ extends Node3D
 @onready var hud_wanted = $UI/WantedLabel
 @onready var hud_ammo = $UI/AmmoLabel
 @onready var sun = $DirectionalLight3D
-@onready var radar = $UI/Radar
 
 var wanted_level: int = 0
 var police_spawned: bool = false
@@ -22,23 +21,35 @@ func _process(delta):
     hud_health.value = player.health
     hud_wanted.text = "WANTED: " + str(wanted_level) + " ★"
     hud_ammo.text = "AMMO: " + str(player.ammo)
-    radar.queue_redraw()
     
     time_of_day += delta * 0.05
     sun.rotation.x = sin(time_of_day) * 1.5
 
 func generate_city():
-    # 1. Lantai Aspal
-    var floor = MeshInstance3D.new()
+    # 1. LANTAI ASPAL (Yang sekarang punya tabrakan fisik)
+    var ground_body = StaticBody3D.new()
+    
+    # Visual Lantai
+    var floor_mesh = MeshInstance3D.new()
     var plane = PlaneMesh.new()
     plane.size = Vector2(600, 600)
-    floor.mesh = plane
+    floor_mesh.mesh = plane
     var f_mat = StandardMaterial3D.new()
-    f_mat.albedo_color = Color(0.08, 0.08, 0.1)
-    floor.material_override = f_mat
-    add_child(floor)
+    f_mat.albedo_color = Color(0.15, 0.15, 0.2) # Warna aspal agak terang
+    floor_mesh.material_override = f_mat
+    
+    # Tabrakan Lantai (Collision)
+    var col = CollisionShape3D.new()
+    var shape = BoxShape3D.new()
+    shape.size = Vector3(600, 1, 600)
+    col.shape = shape
+    col.position = Vector3(0, -0.5, 0) # Posisi tabrakan agar permukaannya pas di Y=0
+    
+    ground_body.add_child(floor_mesh)
+    ground_body.add_child(col)
+    add_child(ground_body)
 
-    # 2. Pantai (Water)
+    # 2. Air Pantai
     var water = MeshInstance3D.new()
     var w_plane = PlaneMesh.new()
     w_plane.size = Vector2(1000, 1000)
@@ -48,10 +59,10 @@ func generate_city():
     w_mat.metallic = 0.8
     w_mat.roughness = 0.1
     water.material_override = w_mat
-    water.position = Vector3(0, -0.5, -400) # Air di luar kota
+    water.position = Vector3(0, -0.2, -400)
     add_child(water)
 
-    # 3. Grid Kota & Lampu
+    # 3. Gedung & Lampu
     var block_size = 80
     for x in range(-3, 4):
         for z in range(-3, 4):
@@ -109,7 +120,6 @@ func spawn_vehicles(amount: int):
         mesh.material_override = mat
         car.add_child(mesh)
         
-        # Lampu Mobil
         var light = SpotLight3D.new()
         light.position = Vector3(0, 0, -2.5)
         light.spot_range = 20.0
@@ -123,7 +133,8 @@ func spawn_vehicles(amount: int):
             wheel.use_as_traction = true
             car.add_child(wheel)
             
-        car.position = Vector3(randf_range(-200, 200), 1.5, randf_range(-200, 200))
+        # Posisi mobil dinaikkan sedikit agar tidak tembus aspal
+        car.position = Vector3(randf_range(-200, 200), 2.0, randf_range(-200, 200))
         add_child(car)
 
 func spawn_pedestrians(amount: int):
@@ -147,6 +158,7 @@ func spawn_pedestrians(amount: int):
         mesh_root.add_child(head)
         
         ped.add_child(mesh_root)
+        # Posisi warga pas di atas aspal
         ped.position = Vector3(randf_range(-200, 200), 1.0, randf_range(-200, 200))
         add_child(ped)
 
