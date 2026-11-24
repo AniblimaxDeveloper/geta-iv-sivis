@@ -6,7 +6,7 @@ extends CanvasLayer
 
 var touch_index = -1
 var base_center = Vector2.ZERO
-var max_distance = 80.0
+var max_distance = 100.0
 
 func _ready():
     joystick_base.visible = false
@@ -25,11 +25,13 @@ func _input(event):
             touch_index = -1
             joystick_base.visible = false
             joystick_knob.visible = false
-            player.move_direction = Vector2.ZERO
+            player.input_dir = Vector2.ZERO
 
     if event is InputEventScreenDrag and event.index == touch_index:
         var diff = event.position - base_center
         if diff.length() > max_distance:
             diff = diff.normalized() * max_distance
         joystick_knob.global_position = base_center + diff - joystick_knob.size / 2
-        player.move_direction = diff / max_distance
+        
+        # Kirim input ke player (X, Y)
+        player.input_dir = diff / max_distance
