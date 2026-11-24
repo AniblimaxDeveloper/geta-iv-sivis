@@ -9,27 +9,27 @@ var base_center = Vector2.ZERO
 var max_distance = 80.0
 
 func _ready():
-joystick_base.visible = false
-joystick_knob.visible = false
+    joystick_base.visible = false
+    joystick_knob.visible = false
 
 func _input(event):
-if event is InputEventScreenTouch:
-if event.pressed and touch_index == -1:
-touch_index = event.index
-base_center = event.position
-joystick_base.global_position = base_center - joystick_base.size / 2
-joystick_knob.global_position = base_center - joystick_knob.size / 2
-joystick_base.visible = true
-joystick_knob.visible = true
-elif not event.pressed and event.index == touch_index:
-touch_index = -1
-joystick_base.visible = false
-joystick_knob.visible = false
-player.move_direction = Vector2.ZERO
+    if event is InputEventScreenTouch:
+        if event.pressed and touch_index == -1:
+            touch_index = event.index
+            base_center = event.position
+            joystick_base.global_position = base_center - joystick_base.size / 2
+            joystick_knob.global_position = base_center - joystick_knob.size / 2
+            joystick_base.visible = true
+            joystick_knob.visible = true
+        elif not event.pressed and event.index == touch_index:
+            touch_index = -1
+            joystick_base.visible = false
+            joystick_knob.visible = false
+            player.move_direction = Vector2.ZERO
 
-if event is InputEventScreenDrag and event.index == touch_index:
-var diff = event.position - base_center
-if diff.length() > max_distance:
-diff = diff.normalized() * max_distance
-joystick_knob.global_position = base_center + diff - joystick_knob.size / 2
-player.move_direction = diff / max_distance
+    if event is InputEventScreenDrag and event.index == touch_index:
+        var diff = event.position - base_center
+        if diff.length() > max_distance:
+            diff = diff.normalized() * max_distance
+        joystick_knob.global_position = base_center + diff - joystick_knob.size / 2
+        player.move_direction = diff / max_distance
