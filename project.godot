@@ -18,6 +18,7 @@ window/stretch/mode="canvas_items"
 pointing/emulate_mouse_from_touch=true
 
 [rendering]
+textures/vram_compression/import_etc2_astc=true
 renderer/rendering_method="mobile"
 renderer/rendering_method.mobile="mobile"
 environment/defaults/default_clear_color=Color(0.1, 0.05, 0.1, 1)
