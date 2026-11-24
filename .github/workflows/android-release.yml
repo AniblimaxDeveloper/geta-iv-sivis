@@ -23,7 +23,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: '' # Mencegah instalasi paket 'tools' yang sudah dihapus Google
+          packages: ''
 
       - name: Install Android SDK components
         run: |
@@ -41,7 +41,9 @@ jobs:
         run: |
           mkdir -p "$HOME/.local/share/godot/export_templates"
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
-          unzip -q Godot_v4.3-stable_export_templates.tpz -d "$HOME/.local/share/godot/export_templates"
+          unzip -q Godot_v4.3-stable_export_templates.tpz
+          # PERBAIKAN: Pindahkan isi folder 'templates' ke tempat yang dibaca Godot
+          mv templates/* "$HOME/.local/share/godot/export_templates/"
 
       - name: Import Godot project
         run: |
