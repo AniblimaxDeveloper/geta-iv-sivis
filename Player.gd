@@ -5,6 +5,7 @@ extends CharacterBody3D
 @export var gravity: float = 30.0
 
 var money: int = 0
+var health: float = 100.0
 var input_dir: Vector2 = Vector2.ZERO
 var current_vehicle: VehicleBody3D = null
 var walk_time: float = 0.0
@@ -20,16 +21,14 @@ var walk_time: float = 0.0
 
 func _physics_process(delta):
     if current_vehicle:
-        current_vehicle.engine_force = -input_dir.y * 1200.0
+        current_vehicle.engine_force = -input_dir.y * 1500.0
         current_vehicle.steering = -input_dir.x * 0.5
-        global_position = current_vehicle.global_position + Vector3(0, 2.5, 0)
+        global_position = current_vehicle.global_position + Vector3(0, 3.0, 0)
         mesh_root.visible = false
         return
 
     mesh_root.visible = true
-
-    if not is_on_floor():
-        velocity.y -= gravity * delta
+    if not is_on_floor(): velocity.y -= gravity * delta
 
     var direction = (camera_pivot.global_transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
     direction.y = 0
@@ -41,16 +40,16 @@ func _physics_process(delta):
         var target_angle = atan2(-direction.x, -direction.z)
         mesh_root.rotation.y = lerp_angle(mesh_root.rotation.y, target_angle, 0.2)
         
-        # Animasi Berjalan (Ayun Kaki dan Tangan)
-        walk_time += delta * 10.0
-        left_leg.rotation.x = sin(walk_time) * 0.5
-        right_leg.rotation.x = -sin(walk_time) * 0.5
-        left_arm.rotation.x = -sin(walk_time) * 0.5
-        right_arm.rotation.x = sin(walk_time) * 0.5
+        # Animasi Berjalan Manusia
+        walk_time += delta * 12.0
+        left_leg.rotation.x = sin(walk_time) * 0.6
+        right_leg.rotation.x = -sin(walk_time) * 0.6
+        left_arm.rotation.x = -sin(walk_time) * 0.4
+        right_arm.rotation.x = sin(walk_time) * 0.4
     else:
         velocity.x = move_toward(velocity.x, 0, speed)
         velocity.z = move_toward(velocity.z, 0, speed)
-        # Kembali ke posisi diam
+        # Animasi Diam (Idle)
         left_leg.rotation.x = lerp(left_leg.rotation.x, 0.0, 0.1)
         right_leg.rotation.x = lerp(right_leg.rotation.x, 0.0, 0.1)
         left_arm.rotation.x = lerp(left_arm.rotation.x, 0.0, 0.1)
@@ -85,5 +84,10 @@ func interact():
             if global_position.distance_to(v.global_position) < 8.0:
                 current_vehicle = v
                 break
+
+func take_damage(amount: float):
+    health -= amount
+    if health <= 0:
+        get_tree().reload_current_scene()
 
 func add_money(amount: int): money += amount

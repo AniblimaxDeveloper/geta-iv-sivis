@@ -19,20 +19,23 @@ height = 0.6
 [sub_resource type="BoxMesh" id="BoxMesh_limb"]
 size = Vector3(0.2, 0.8, 0.2)
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_neon"]
+[sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
 sky_top_color = Color(0.2, 0.05, 0.3, 1)
 sky_horizon_color = Color(1.0, 0.4, 0.1, 1)
 ground_bottom_color = Color(0.05, 0.05, 0.1, 1)
 ground_horizon_color = Color(0.4, 0.1, 0.2, 1)
 
-[sub_resource type="Sky" id="Sky_neon"]
-sky_material = SubResource("ProceduralSkyMaterial_neon")
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("SkyMat")
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 2
-sky = SubResource("Sky_neon")
+sky = SubResource("Sky_1")
 ambient_light_source = 3
 tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.5, 0.2, 0.4, 1)
+fog_density = 0.01
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -65,12 +68,10 @@ position = Vector3(0, 1.5, 0)
 [node name="LeftArm" type="MeshInstance3D" parent="Player/MeshRoot"]
 mesh = SubResource("BoxMesh_limb")
 position = Vector3(0.5, 0.8, 0)
-rotation = Vector3(0, 0, -0.2)
 
 [node name="RightArm" type="MeshInstance3D" parent="Player/MeshRoot"]
 mesh = SubResource("BoxMesh_limb")
 position = Vector3(-0.5, 0.8, 0)
-rotation = Vector3(0, 0, 0.2)
 
 [node name="LeftLeg" type="MeshInstance3D" parent="Player/MeshRoot"]
 mesh = SubResource("BoxMesh_limb")
@@ -99,15 +100,22 @@ offset_right = 400.0
 offset_bottom = 80.0
 theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
 theme_override_font_sizes/font_size = 48
-text = "CASH: $0"
+text = "$0"
+
+[node name="HealthBar" type="ProgressBar" parent="UI"]
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 320.0
+offset_bottom = 100.0
+value = 100.0
 
 [node name="WantedLabel" type="Label" parent="UI"]
 offset_left = 20.0
-offset_top = 80.0
+offset_top = 110.0
 offset_right = 400.0
-offset_bottom = 140.0
+offset_bottom = 160.0
 theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 40
 text = "WANTED: 0 ★"
 
 [node name="Crosshair" type="ColorRect" parent="UI"]
