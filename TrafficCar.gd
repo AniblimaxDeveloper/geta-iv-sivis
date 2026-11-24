@@ -1,10 +1,23 @@
 extends VehicleBody3D
-var speed: float = 600.0
+var target_speed: float = 600.0
 var time: float = 0.0
+var ray: RayCast3D
+
+func _ready():
+    ray = RayCast3D.new()
+    ray.target_position = Vector3(0, 0, -6) # Deteksi 6 meter ke depan
+    add_child(ray)
 
 func _physics_process(delta):
-    engine_force = speed
+    # Jika ada halangan di depan, rem!
+    if ray.is_colliding():
+        brake = 10.0
+        engine_force = 0
+    else:
+        brake = 0
+        engine_force = target_speed
+        
     time += delta
     if time > randf_range(5.0, 10.0):
         time = 0
-        steering = randf_range(-0.5, 0.5)
+        steering = randf_range(-0.3, 0.3)

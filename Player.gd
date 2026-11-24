@@ -23,7 +23,14 @@ var walk_time: float = 0.0
 
 func _physics_process(delta):
     if current_vehicle:
-        current_vehicle.engine_force = -input_dir.y * 2000.0
+        # Rem dan Mundur (Sumbu Y Positif = Rem/Mundur)
+        if input_dir.y > 0:
+            current_vehicle.brake = input_dir.y * 10.0
+            current_vehicle.engine_force = 0
+        else:
+            current_vehicle.brake = 0
+            current_vehicle.engine_force = -input_dir.y * 2500.0
+            
         current_vehicle.steering = -input_dir.x * 0.6
         global_position = current_vehicle.global_position + Vector3(0, 3.0, 0)
         mesh_root.visible = false
@@ -78,10 +85,29 @@ func shoot():
     query.exclude = [self.get_rid()]
     var result = space_state.intersect_ray(query)
     
+    # Tracer Peluru (Garis Visual)
+    var tracer = MeshInstance3D.new()
+    var t_mesh = BoxMesh.new()
+    t_mesh.size = Vector3(0.05, 0.05, origin.distance_to(end))
+    tracer.mesh = t_mesh
+    var t_mat = StandardMaterial3D.new()
+    t_mat.albedo_color = Color(1, 1, 0, 0.8)
+    t_mat.emission_enabled = true
+    t_mat.emission = Color(1, 1, 0)
+    tracer.material_override = t_mat
+    get_tree().current_scene.add_child(tracer)
+    tracer.global_position = (origin + end) / 2
+    tracer.look_at(end, Vector3.UP)
+    get_tree().create_timer(0.1).timeout.connect(tracer.queue_free)
+
+    # Memicu Panik Warga
+    var main = get_node_or_null("../../Main")
+    if main: 
+        main.add_wanted_level()
+        main.panic_pedestrians()
+
     if result and result.collider.has_method("take_damage"):
         result.collider.take_damage(50)
-        var main = get_node_or_null("../../Main")
-        if main: main.add_wanted_level()
 
 func interact():
     if current_vehicle:
