@@ -2,18 +2,28 @@ extends CharacterBody3D
 var speed: float = 4.0
 var direction: Vector3
 var time_to_change: float = 0.0
+@onready var leg_l = $MeshRoot/LegL
+@onready var leg_r = $MeshRoot/LegR
+var walk_t: float = 0.0
 
 func _ready(): randomize_dir()
 
 func randomize_dir():
     direction = Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)).normalized()
-    time_to_change = randf_range(2.0, 5.0)
+    time_to_change = randf_range(3.0, 6.0)
 
 func _physics_process(delta):
     if not is_on_floor(): velocity.y -= 30.0 * delta
     time_to_change -= delta
     if time_to_change <= 0: randomize_dir()
+    
     velocity.x = direction.x * speed
     velocity.z = direction.z * speed
     move_and_slide()
+    
+    walk_t += delta * 10.0
+    if leg_l and leg_r:
+        leg_l.rotation.x = sin(walk_t) * 0.5
+        leg_r.rotation.x = -sin(walk_t) * 0.5
+        
     if get_slide_collision_count() > 0: randomize_dir()

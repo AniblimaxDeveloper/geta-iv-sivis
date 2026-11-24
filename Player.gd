@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-@export var speed: float = 12.0
+@export var speed: float = 15.0
 @export var jump_force: float = 10.0
 @export var gravity: float = 30.0
 
@@ -21,8 +21,8 @@ var walk_time: float = 0.0
 
 func _physics_process(delta):
     if current_vehicle:
-        current_vehicle.engine_force = -input_dir.y * 1500.0
-        current_vehicle.steering = -input_dir.x * 0.5
+        current_vehicle.engine_force = -input_dir.y * 1800.0
+        current_vehicle.steering = -input_dir.x * 0.6
         global_position = current_vehicle.global_position + Vector3(0, 3.0, 0)
         mesh_root.visible = false
         return
@@ -41,19 +41,18 @@ func _physics_process(delta):
         mesh_root.rotation.y = lerp_angle(mesh_root.rotation.y, target_angle, 0.2)
         
         # Animasi Berjalan Manusia
-        walk_time += delta * 12.0
-        left_leg.rotation.x = sin(walk_time) * 0.6
-        right_leg.rotation.x = -sin(walk_time) * 0.6
-        left_arm.rotation.x = -sin(walk_time) * 0.4
-        right_arm.rotation.x = sin(walk_time) * 0.4
+        walk_time += delta * 15.0
+        left_leg.rotation.x = sin(walk_time) * 0.7
+        right_leg.rotation.x = -sin(walk_time) * 0.7
+        left_arm.rotation.x = -sin(walk_time) * 0.5
+        right_arm.rotation.x = sin(walk_time) * 0.5
     else:
         velocity.x = move_toward(velocity.x, 0, speed)
         velocity.z = move_toward(velocity.z, 0, speed)
-        # Animasi Diam (Idle)
-        left_leg.rotation.x = lerp(left_leg.rotation.x, 0.0, 0.1)
-        right_leg.rotation.x = lerp(right_leg.rotation.x, 0.0, 0.1)
-        left_arm.rotation.x = lerp(left_arm.rotation.x, 0.0, 0.1)
-        right_arm.rotation.x = lerp(right_arm.rotation.x, 0.0, 0.1)
+        left_leg.rotation.x = lerp(left_leg.rotation.x, 0.0, 0.2)
+        right_leg.rotation.x = lerp(right_leg.rotation.x, 0.0, 0.2)
+        left_arm.rotation.x = lerp(left_arm.rotation.x, 0.0, 0.2)
+        right_arm.rotation.x = lerp(right_arm.rotation.x, 0.0, 0.2)
 
     move_and_slide()
 
@@ -87,7 +86,6 @@ func interact():
 
 func take_damage(amount: float):
     health -= amount
-    if health <= 0:
-        get_tree().reload_current_scene()
+    if health <= 0: get_tree().reload_current_scene()
 
 func add_money(amount: int): money += amount

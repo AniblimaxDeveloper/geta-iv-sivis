@@ -1,5 +1,5 @@
 extends CharacterBody3D
-var speed: float = 10.0
+var speed: float = 12.0
 var target: Node3D
 var health: int = 100
 
@@ -21,7 +21,7 @@ func _physics_process(delta):
             velocity.x = 0
             velocity.z = 0
             if target.has_method("take_damage"):
-                target.take_damage(20.0 * delta)
+                target.take_damage(25.0 * delta)
     move_and_slide()
 
 func take_damage(amount: int):
