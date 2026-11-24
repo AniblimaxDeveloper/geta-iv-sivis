@@ -14,7 +14,7 @@ func _ready():
 
 func _input(event):
     if event is InputEventScreenTouch:
-        if event.pressed and touch_index == -1:
+        if event.pressed and touch_index == -1 and event.position.x < 600:
             touch_index = event.index
             base_center = event.position
             joystick_base.global_position = base_center - joystick_base.size / 2
@@ -32,6 +32,10 @@ func _input(event):
         if diff.length() > max_distance:
             diff = diff.normalized() * max_distance
         joystick_knob.global_position = base_center + diff - joystick_knob.size / 2
-        
-        # Kirim input ke player (X, Y)
         player.input_dir = diff / max_distance
+
+func _on_jump_button_pressed():
+    player.jump()
+
+func _on_shoot_button_pressed():
+    player.shoot()
