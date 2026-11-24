@@ -1,33 +1,34 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://Main.gd" id="1_main"]
 [ext_resource type="Script" path="res://Player.gd" id="2_player"]
 [ext_resource type="Script" path="res://TouchControls.gd" id="3_touch"]
+[ext_resource type="Script" path="res://Radar.gd" id="4_radar"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_p"]
 radius = 0.4
 height = 1.8
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_b"]
 radius = 0.4
 height = 1.2
 
-[sub_resource type="SphereMesh" id="SphereMesh_head"]
+[sub_resource type="SphereMesh" id="SphereMesh_h"]
 radius = 0.3
 height = 0.6
 
-[sub_resource type="BoxMesh" id="BoxMesh_arm"]
-size = Vector3(0.2, 0.7, 0.2)
+[sub_resource type="BoxMesh" id="BoxMesh_l"]
+size = Vector3(0.2, 0.8, 0.2)
 
-[sub_resource type="BoxMesh" id="BoxMesh_leg"]
-size = Vector3(0.25, 0.8, 0.25)
+[sub_resource type="BoxMesh" id="BoxMesh_w"]
+size = Vector3(0.1, 0.1, 0.4)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
-background_color = Color(0.15, 0.05, 0.2, 1)
+background_color = Color(0.1, 0.05, 0.15, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.6, 0.6, 0.7, 1)
-ambient_light_energy = 1.0
+tonemap_mode = 2
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -38,52 +39,52 @@ environment = SubResource("Environment_1")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.5, 0.8, 0, -0.8, 0.5, 0, 50, 0)
 light_color = Color(1, 0.8, 0.6, 1)
-light_energy = 1.2
+light_energy = 1.5
+shadow_enabled = true
 
 [node name="Player" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
 script = ExtResource("2_player")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
-shape = SubResource("CapsuleShape3D_player")
+shape = SubResource("CapsuleShape3D_p")
 
 [node name="MeshRoot" type="Node3D" parent="Player"]
 
 [node name="Body" type="MeshInstance3D" parent="Player/MeshRoot"]
-mesh = SubResource("CapsuleMesh_body")
+mesh = SubResource("CapsuleMesh_b")
 position = Vector3(0, -0.3, 0)
 
 [node name="Head" type="MeshInstance3D" parent="Player/MeshRoot"]
-mesh = SubResource("SphereMesh_head")
+mesh = SubResource("SphereMesh_h")
 position = Vector3(0, 0.6, 0)
 
-[node name="LeftArmPivot" type="Node3D" parent="Player/MeshRoot"]
-position = Vector3(0.45, 0.2, 0)
+[node name="LeftArm" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("BoxMesh_l")
+position = Vector3(0.45, -0.1, 0)
 
-[node name="ArmMesh" type="MeshInstance3D" parent="Player/MeshRoot/LeftArmPivot"]
-mesh = SubResource("BoxMesh_arm")
-position = Vector3(0, -0.35, 0)
+[node name="RightArm" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("BoxMesh_l")
+position = Vector3(-0.45, -0.1, 0)
 
-[node name="RightArmPivot" type="Node3D" parent="Player/MeshRoot"]
-position = Vector3(-0.45, 0.2, 0)
+[node name="Weapon" type="MeshInstance3D" parent="Player/MeshRoot/RightArm"]
+mesh = SubResource("BoxMesh_w")
+position = Vector3(0, -0.7, -0.2)
+visible = false
 
-[node name="ArmMesh" type="MeshInstance3D" parent="Player/MeshRoot/RightArmPivot"]
-mesh = SubResource("BoxMesh_arm")
-position = Vector3(0, -0.35, 0)
+[node name="LeftLeg" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("BoxMesh_l")
+position = Vector3(0.2, -0.9, 0)
 
-[node name="LeftLegPivot" type="Node3D" parent="Player/MeshRoot"]
-position = Vector3(0.15, -0.9, 0)
+[node name="RightLeg" type="MeshInstance3D" parent="Player/MeshRoot"]
+mesh = SubResource("BoxMesh_l")
+position = Vector3(-0.2, -0.9, 0)
 
-[node name="LegMesh" type="MeshInstance3D" parent="Player/MeshRoot/LeftLegPivot"]
-mesh = SubResource("BoxMesh_leg")
-position = Vector3(0, -0.4, 0)
-
-[node name="RightLegPivot" type="Node3D" parent="Player/MeshRoot"]
-position = Vector3(-0.15, -0.9, 0)
-
-[node name="LegMesh" type="MeshInstance3D" parent="Player/MeshRoot/RightLegPivot"]
-mesh = SubResource("BoxMesh_leg")
-position = Vector3(0, -0.4, 0)
+[node name="MuzzleFlash" type="OmniLight3D" parent="Player"]
+light_color = Color(1, 0.8, 0)
+light_energy = 5.0
+omni_range = 5.0
+visible = false
 
 [node name="CameraPivot" type="Node3D" parent="Player"]
 position = Vector3(0, 0.6, 0)
@@ -104,10 +105,10 @@ offset_right = 400.0
 offset_bottom = 80.0
 theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
 theme_override_font_sizes/font_size = 48
-text = "$250000"
+text = "$50000"
 
 [node name="WantedLabel" type="Label" parent="UI"]
-offset_left = 1180.0
+offset_left = 1150.0
 offset_top = 20.0
 offset_right = 1260.0
 offset_bottom = 80.0
@@ -116,13 +117,13 @@ theme_override_font_sizes/font_size = 48
 text = "0 ★"
 
 [node name="AmmoLabel" type="Label" parent="UI"]
-offset_left = 1180.0
+offset_left = 1150.0
 offset_top = 80.0
 offset_right = 1260.0
-offset_bottom = 130.0
+offset_bottom = 120.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 32
-text = "AMMO: 100"
+text = "AMMO: 150"
 
 [node name="HealthBar" type="ProgressBar" parent="UI"]
 offset_left = 20.0
@@ -131,19 +132,26 @@ offset_right = 320.0
 offset_bottom = 670.0
 value = 100.0
 
-[node name="ArmorBar" type="ProgressBar" parent="UI"]
+[node name="StaminaBar" type="ProgressBar" parent="UI"]
 offset_left = 20.0
 offset_top = 680.0
 offset_right = 320.0
 offset_bottom = 700.0
 value = 100.0
 
-[node name="StaminaBar" type="ProgressBar" parent="UI"]
+[node name="Radar" type="Control" parent="UI"]
 offset_left = 20.0
-offset_top = 710.0
-offset_right = 320.0
-offset_bottom = 730.0
-value = 100.0
+offset_top = 450.0
+offset_right = 220.0
+offset_bottom = 650.0
+script = ExtResource("4_radar")
+
+[node name="Crosshair" type="ColorRect" parent="UI"]
+offset_left = 638.0
+offset_top = 358.0
+offset_right = 642.0
+offset_bottom = 362.0
+color = Color(1, 1, 1, 0.8)
 
 [node name="TouchControls" type="CanvasLayer" parent="."]
 script = ExtResource("3_touch")
@@ -159,27 +167,27 @@ offset_right = 150.0
 offset_bottom = 150.0
 color = Color(0.1, 0.6, 1, 0.7)
 
-[node name="JumpButton" type="Button" parent="TouchControls"]
+[node name="JumpBtn" type="Button" parent="TouchControls"]
 offset_left = 1050.0
 offset_top = 300.0
 offset_right = 1200.0
 offset_bottom = 450.0
 text = "JUMP"
 
-[node name="ShootButton" type="Button" parent="TouchControls"]
+[node name="ShootBtn" type="Button" parent="TouchControls"]
 offset_left = 880.0
 offset_top = 300.0
 offset_right = 1030.0
 offset_bottom = 450.0
 text = "SHOOT"
 
-[node name="ActionButton" type="Button" parent="TouchControls"]
+[node name="CarBtn" type="Button" parent="TouchControls"]
 offset_left = 1150.0
 offset_top = 550.0
 offset_right = 1260.0
 offset_bottom = 650.0
 text = "CAR"
 
-[connection signal="pressed" from="TouchControls/JumpButton" to="TouchControls" method="_on_jump_button_pressed"]
-[connection signal="pressed" from="TouchControls/ShootButton" to="TouchControls" method="_on_shoot_button_pressed"]
-[connection signal="pressed" from="TouchControls/ActionButton" to="TouchControls" method="_on_action_button_pressed"]
+[connection signal="pressed" from="TouchControls/JumpBtn" to="TouchControls" method="_on_jump_btn_pressed"]
+[connection signal="pressed" from="TouchControls/ShootBtn" to="TouchControls" method="_on_shoot_btn_pressed"]
+[connection signal="pressed" from="TouchControls/CarBtn" to="TouchControls" method="_on_car_btn_pressed"]
