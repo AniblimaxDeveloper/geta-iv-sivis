@@ -5,6 +5,7 @@ extends CanvasLayer
 @onready var player = get_node("../Player")
 
 var touch_index = -1
+var look_touch_index = -1
 var base_center = Vector2.ZERO
 var max_distance = 100.0
 
@@ -13,6 +14,7 @@ func _ready():
     joystick_knob.visible = false
 
 func _input(event):
+    # Kontrol Joystick Kiri
     if event is InputEventScreenTouch:
         if event.pressed and touch_index == -1 and event.position.x < 600:
             touch_index = event.index
@@ -34,8 +36,23 @@ func _input(event):
         joystick_knob.global_position = base_center + diff - joystick_knob.size / 2
         player.input_dir = diff / max_distance
 
+    # Kontrol Kamera (Geser Layar Kanan)
+    if event is InputEventScreenTouch:
+        if event.pressed and event.position.x >= 600:
+            look_touch_index = event.index
+        elif not event.pressed and event.index == look_touch_index:
+            look_touch_index = -1
+
+    if event is InputEventScreenDrag and event.index == look_touch_index:
+        player.camera_pivot.rotate_y(-event.relative.x * 0.01)
+        player.spring_arm.rotate_x(-event.relative.y * 0.01)
+        player.spring_arm.rotation.x = clamp(player.spring_arm.rotation.x, deg_to_rad(-70), deg_to_rad(30))
+
 func _on_jump_button_pressed():
     player.jump()
 
 func _on_shoot_button_pressed():
     player.shoot()
+
+func _on_action_button_pressed():
+    player.interact()
