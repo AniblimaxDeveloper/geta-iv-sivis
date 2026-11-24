@@ -9,8 +9,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20 # Batasi total maksimal 20 menit
-
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,7 +51,6 @@ jobs:
         timeout-minutes: 3
         run: |
           godot --headless --path . --import || true
-          # (Baris --editor --quit yang bikin hang sudah dihapus)
 
       - name: Export unsigned APK
         timeout-minutes: 5
@@ -60,29 +58,23 @@ jobs:
           mkdir -p build
           godot --headless --path . --export-release "Android" build/geta-iv-sivis-unsigned.apk
 
-      - name: Decode signing keystore
-        run: |
-          echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+      # --- BAGIAN YANG KITA GANTI DENGAN ACTION ANTI-GAGAL ---
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: build
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-
-      - name: Sign APK with apksigner
-        run: |
-          "$ANDROID_HOME/build-tools/34.0.0/apksigner" sign \
-            --ks release.keystore \
-            --ks-pass "pass:$KEYSTORE_PASSWORD" \
-            --key-pass "pass:$KEY_PASSWORD" \
-            --ks-key-alias "$KEY_ALIAS" \
-            --out build/geta-iv-sivis-signed.apk \
-            build/geta-iv-sivis-unsigned.apk
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          BUILD_TOOLS_VERSION: "34.0.0"
+      # -------------------------------------------------------
 
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: build/geta-iv-sivis-signed.apk
+          files: ${{ steps.sign_app.outputs.signedReleaseFile }}
           generate_release_notes: true
