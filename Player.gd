@@ -6,6 +6,7 @@ extends CharacterBody3D
 
 var money: int = 0
 var health: float = 100.0
+var ammo: int = 50
 var input_dir: Vector2 = Vector2.ZERO
 var current_vehicle: VehicleBody3D = null
 var walk_time: float = 0.0
@@ -40,7 +41,6 @@ func _physics_process(delta):
         var target_angle = atan2(-direction.x, -direction.z)
         mesh_root.rotation.y = lerp_angle(mesh_root.rotation.y, target_angle, 0.2)
         
-        # Animasi Berjalan Manusia
         walk_time += delta * 15.0
         left_leg.rotation.x = sin(walk_time) * 0.7
         right_leg.rotation.x = -sin(walk_time) * 0.7
@@ -61,7 +61,9 @@ func jump():
         velocity.y = jump_force
 
 func shoot():
-    if current_vehicle: return
+    if current_vehicle or ammo <= 0: return
+    
+    ammo -= 1
     var space_state = get_world_3d().direct_space_state
     var screen_center = get_viewport().get_visible_rect().size / 2
     var origin = camera.project_ray_origin(screen_center)
@@ -69,6 +71,7 @@ func shoot():
     var query = PhysicsRayQueryParameters3D.create(origin, end)
     query.exclude = [self.get_rid()]
     var result = space_state.intersect_ray(query)
+    
     if result and result.collider.has_method("take_damage"):
         result.collider.take_damage(50)
         var main = get_node_or_null("../../Main")
@@ -89,3 +92,4 @@ func take_damage(amount: float):
     if health <= 0: get_tree().reload_current_scene()
 
 func add_money(amount: int): money += amount
+func add_ammo(amount: int): ammo += amount
