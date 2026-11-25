@@ -1,7 +1,7 @@
 extends CharacterBody3D
 
 @export var walk_speed: float = 10.0
-@export var run_speed: float = 20.0
+@export var run_speed: float = 22.0
 @export var jump_force: float = 14.0
 @export var gravity: float = 35.0
 
@@ -25,6 +25,19 @@ var walk_time: float = 0.0
 @onready var camera = $CameraPivot/SpringArm3D/Camera3D
 @onready var muzzle_flash = $MuzzleFlash
 
+func _ready():
+    # LOGIKA UNTUK PC: Jika kamu menaruh file Player.glb, game akan memuatnya!
+    if ResourceLoader.exists("res://Player.glb"):
+        var model = load("res://Player.glb").instantiate()
+        mesh_root.add_child(model)
+        # Sembunyikan kotak-kotak prosedural
+        $MeshRoot/Body.visible = false
+        $MeshRoot/Head.visible = false
+        $MeshRoot/LeftArm.visible = false
+        $MeshRoot/RightArm.visible = false
+        $MeshRoot/LeftLeg.visible = false
+        $MeshRoot/RightLeg.visible = false
+
 func _physics_process(delta):
     if health <= 0:
         get_tree().reload_current_scene()
@@ -36,7 +49,7 @@ func _physics_process(delta):
             current_vehicle.engine_force = 0
         else:
             current_vehicle.brake = 0
-            current_vehicle.engine_force = -input_dir.y * 3000.0
+            current_vehicle.engine_force = -input_dir.y * 3500.0
         current_vehicle.steering = -input_dir.x * 0.6
         global_position = current_vehicle.global_position + Vector3(0, 3.0, 0)
         mesh_root.visible = false
