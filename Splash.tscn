@@ -1,5 +1,4 @@
 [gd_scene load_steps=2 format=3]
-
 [ext_resource type="Script" path="res://Splash.gd" id="1_splash"]
 
 [node name="Splash" type="Control"]
@@ -30,17 +29,6 @@ theme_override_font_sizes/font_size = 120
 text = "DELTVA IV"
 horizontal_alignment = 1
 
-[node name="SubtitleLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 0.0
-offset_top = 400.0
-offset_right = 1280.0
-offset_bottom = 450.0
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 32
-text = "BIGGER. BOLDER. MORE REALISTIC."
-horizontal_alignment = 1
-
 [node name="LoadingBar" type="ProgressBar" parent="."]
 layout_mode = 0
 offset_left = 440.0
@@ -48,14 +36,3 @@ offset_top = 550.0
 offset_right = 840.0
 offset_bottom = 570.0
 value = 0.0
-
-[node name="Copyright" type="Label" parent="."]
-layout_mode = 0
-offset_left = 0.0
-offset_top = 680.0
-offset_right = 1280.0
-offset_bottom = 710.0
-theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
-theme_override_font_sizes/font_size = 20
-text = "© 2026 DELTVA STUDIOS. ALL RIGHTS RESERVED."
-horizontal_alignment = 1
