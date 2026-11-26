@@ -7,6 +7,7 @@ extends Node3D
 @onready var hud_stamina = $UI/StaminaBar
 @onready var hud_wanted = $UI/WantedLabel
 @onready var hud_ammo = $UI/AmmoLabel
+@onready var hud_mission = $UI/MissionLabel
 @onready var radar = $UI/Radar
 @onready var sun = $DirectionalLight3D
 @onready var env = $WorldEnvironment
@@ -15,12 +16,15 @@ var wanted_level: int = 0
 var police_spawned: bool = false
 var time_of_day: float = 0.0
 var weather_timer: float = 0.0
+var is_raining: bool = false
+var rain_particles: CPUParticles3D = null
 
 func _ready():
     generate_world()
-    spawn_traffic(20)
-    spawn_peds(30)
-    spawn_robbery_target()
+    spawn_traffic(15)
+    spawn_peds(20)
+    setup_rain()
+    spawn_bank_mission()
 
 func _process(delta):
     hud_money.text = "$" + str(player.money)
@@ -34,19 +38,48 @@ func _process(delta):
     time_of_day += delta * 0.02
     sun.rotation.x = sin(time_of_day) * 1.2
     
-    # Sistem Cuaca Dinamis
+    # Siklus Cuaca (Hujan tiap 20 detik)
     weather_timer += delta
-    if weather_timer > 30.0: # Ganti cuaca tiap 30 detik
+    if weather_timer > 20.0:
         weather_timer = 0
-        Global.is_raining = not Global.is_raining
-        if Global.is_raining:
+        is_raining = not is_raining
+        if is_raining:
+            rain_particles.emitting = true
             env.environment.fog_enabled = true
             env.environment.fog_density = 0.05
-            env.environment.fog_light_color = Color(0.3, 0.3, 0.35) # Langit gelap
+            env.environment.fog_light_color = Color(0.2, 0.2, 0.3) # Gelap
+            sun.light_energy = 0.5 # Redup
         else:
+            rain_particles.emitting = false
             env.environment.fog_enabled = false
+            sun.light_energy = 1.5
+
+func setup_rain():
+    rain_particles = CPUParticles3D.new()
+    rain_particles.emitting = false
+    rain_particles.amount = 2000
+    rain_particles.lifetime = 1.0
+    rain_particles.direction = Vector3(0, -1, 0)
+    rain_particles.spread = 10.0
+    rain_particles.initial_velocity_min = 20.0
+    rain_particles.initial_velocity_max = 30.0
+    rain_particles.gravity = Vector3(0, -20, 0)
+    rain_particles.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+    rain_particles.emission_box_extents = Vector3(50, 30, 50)
+    
+    var mesh = BoxMesh.new()
+    mesh.size = Vector3(0.05, 0.5, 0.05) # Bentuk tetesan air
+    rain_particles.mesh = mesh
+    
+    var mat = StandardMaterial3D.new()
+    mat.albedo_color = Color(0.5, 0.6, 0.8, 0.6)
+    mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    rain_particles.material_override = mat
+    
+    add_child(rain_particles)
 
 func generate_world():
+    # Lantai
     var ground = StaticBody3D.new()
     var plane = PlaneMesh.new()
     plane.size = Vector2(1000, 1000)
@@ -64,13 +97,14 @@ func generate_world():
     ground.add_child(col)
     add_child(ground)
 
+    # Gedung & Lampu
     for x in range(-4, 5):
         for z in range(-4, 5):
             if x == 0 and z == 0: continue
             var b = StaticBody3D.new()
-            var h = randf_range(50, 180)
+            var h = randf_range(40, 150)
             var box = BoxMesh.new()
-            box.size = Vector3(40, h, 40)
+            box.size = Vector3(35, h, 35)
             var b_m = MeshInstance3D.new()
             b_m.mesh = box
             var b_mat = StandardMaterial3D.new()
@@ -84,57 +118,80 @@ func generate_world():
             s.size = box.size
             c.shape = s
             
-            b.position = Vector3(x * 80, h/2, z * 80)
+            b.position = Vector3(x * 70, h/2, z * 70)
             b.add_child(b_m)
             b.add_child(c)
             add_child(b)
 
-func spawn_robbery_target():
-    # Toko Perampokan (Tiang Hijau)
-    var store = Area3D.new()
-    store.add_to_group("robbery")
+func spawn_bank_mission():
+    # Gedung Bank (Warna Emas/Menyala)
+    var bank = Area3D.new()
+    bank.add_to_group("bank")
     
     var col = CollisionShape3D.new()
-    var cyl = CylinderShape3D.new()
-    cyl.radius = 5.0
-    cyl.height = 15.0
-    col.shape = cyl
-    store.add_child(col)
+    var box = BoxShape3D.new()
+    box.size = Vector3(20, 20, 20)
+    col.shape = box
+    bank.add_child(col)
     
     var mesh = MeshInstance3D.new()
-    var cyl_mesh = CylinderMesh.new()
-    cyl_mesh.top_radius = 5.0
-    cyl_mesh.bottom_radius = 5.0
-    cyl_mesh.height = 15.0
-    mesh.mesh = cyl_mesh
+    var b_mesh = BoxMesh.new()
+    b_mesh.size = Vector3(20, 20, 20)
+    mesh.mesh = b_mesh
     var mat = StandardMaterial3D.new()
-    mat.albedo_color = Color(0, 1, 0)
+    mat.albedo_color = Color(1, 0.8, 0)
     mat.emission_enabled = true
-    mat.emission = Color(0, 1, 0)
+    mat.emission = Color(1, 0.8, 0)
     mesh.material_override = mat
-    store.add_child(mesh)
+    bank.add_child(mesh)
     
-    store.position = Vector3(randf_range(-150, 150), 7.5, randf_range(-150, 150))
-    store.body_entered.connect(_on_store_robbed)
-    add_child(store)
+    bank.position = Vector3(randf_range(-150, 150), 10, randf_range(-150, 150))
+    bank.body_entered.connect(_on_bank_robbed)
+    add_child(bank)
+    hud_mission.text = "MISSION: Rampok Gedung Emas!"
 
-func _on_store_robbed(body):
+func _on_bank_robbed(body):
     if body.name == "Player":
-        player.money += 15000
-        add_wanted_level() # Merampok bikin polisi datang
-        # Pindahkan toko ke tempat baru
-        get_tree().get_first_node_in_group("robbery").position = Vector3(randf_range(-150, 150), 7.5, randf_range(-150, 150))
+        player.money += 50000
+        # Set Wanted Level ke Maksimal
+        wanted_level = 5
+        hud_wanted.text = "5 ★"
+        spawn_police_wave(10) # Spawn 10 Polisi sekaligus!
+        hud_mission.text = "BANK ROBBED! KABUR DARI POLISI!"
+        # Hapus gedung bank setelah dirampok
+        var bank = get_tree().get_first_node_in_group("bank")
+        if bank: bank.queue_free()
+
+func spawn_police_wave(amt: int):
+    for i in range(amt):
+        var police = CharacterBody3D.new()
+        police.add_to_group("police")
+        police.set_script(load("res://Police.gd"))
+        var c = CollisionShape3D.new()
+        c.shape = CapsuleShape3D.new()
+        police.add_child(c)
+        var m = MeshInstance3D.new()
+        m.mesh = CapsuleMesh.new()
+        var mat = StandardMaterial3D.new()
+        mat.albedo_color = Color(0, 0.2, 1)
+        m.material_override = mat
+        police.add_child(m)
+        police.position = Vector3(player.position.x + randf_range(-40, 40), 2.0, player.position.z + randf_range(-40, 40))
+        add_child(police)
+    police_spawned = true
 
 func spawn_traffic(amt: int):
     for i in range(amt):
         var car = VehicleBody3D.new()
         car.add_to_group("vehicles")
+        car.set_script(load("res://TrafficCar.gd"))
         var col = CollisionShape3D.new()
         var box = BoxShape3D.new()
         box.size = Vector3(2.5, 1.5, 5.0)
         col.shape = box
         car.add_child(col)
         var mesh = MeshInstance3D.new()
+        mesh.name = "MeshInstance3D"
         var b_mesh = BoxMesh.new()
         b_mesh.size = Vector3(2.5, 1.5, 5.0)
         mesh.mesh = b_mesh
@@ -183,38 +240,4 @@ func panic_pedestrians():
 func add_wanted_level():
     wanted_level += 1
     if wanted_level == 1 and not police_spawned:
-        # Spawn Polisi Darat
-        for i in range(5):
-            var police = CharacterBody3D.new()
-            police.add_to_group("police")
-            police.set_script(load("res://Police.gd"))
-            var c = CollisionShape3D.new()
-            c.shape = CapsuleShape3D.new()
-            police.add_child(c)
-            var m = MeshInstance3D.new()
-            m.mesh = CapsuleMesh.new()
-            var mat = StandardMaterial3D.new()
-            mat.albedo_color = Color(0, 0.2, 1)
-            m.material_override = mat
-            police.add_child(m)
-            police.position = Vector3(player.position.x + randf_range(-30, 30), 2.0, player.position.z + randf_range(-30, 30))
-            add_child(police)
-            
-        # Spawn Helikopter Polisi
-        var heli = CharacterBody3D.new()
-        heli.set_script(load("res://Helicopter.gd"))
-        var hc = CollisionShape3D.new()
-        hc.shape = BoxShape3D.new()
-        heli.add_child(hc)
-        var hm = MeshInstance3D.new()
-        var hbox = BoxMesh.new()
-        hbox.size = Vector3(4, 2, 6)
-        hm.mesh = hbox
-        var hmat = StandardMaterial3D.new()
-        hmat.albedo_color = Color(0, 0.2, 1)
-        hm.material_override = hmat
-        heli.add_child(hm)
-        heli.position = Vector3(player.position.x, 50, player.position.z) # Di langit
-        add_child(heli)
-        
-        police_spawned = true
+        spawn_police_wave(5)

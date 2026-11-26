@@ -43,3 +43,4 @@ func _input(event):
 func _on_jump_btn_pressed(): player.jump()
 func _on_shoot_btn_pressed(): player.shoot()
 func _on_car_btn_pressed(): player.interact()
+func _on_weapon_btn_pressed(): player.toggle_weapon()

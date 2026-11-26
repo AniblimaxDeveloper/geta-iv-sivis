@@ -14,6 +14,7 @@ var input_dir: Vector2 = Vector2.ZERO
 var is_running: bool = false
 var current_vehicle: VehicleBody3D = null
 var walk_time: float = 0.0
+var weapon_mode: int = 0 # 0 = Pistol, 1 = SMG
 
 @onready var mesh_root = $MeshRoot
 @onready var left_leg = $MeshRoot/LeftLeg
@@ -24,19 +25,6 @@ var walk_time: float = 0.0
 @onready var camera_pivot = $CameraPivot
 @onready var camera = $CameraPivot/SpringArm3D/Camera3D
 @onready var muzzle_flash = $MuzzleFlash
-
-func _ready():
-    # LOGIKA UNTUK PC: Jika kamu menaruh file Player.glb, game akan memuatnya!
-    if ResourceLoader.exists("res://Player.glb"):
-        var model = load("res://Player.glb").instantiate()
-        mesh_root.add_child(model)
-        # Sembunyikan kotak-kotak prosedural
-        $MeshRoot/Body.visible = false
-        $MeshRoot/Head.visible = false
-        $MeshRoot/LeftArm.visible = false
-        $MeshRoot/RightArm.visible = false
-        $MeshRoot/LeftLeg.visible = false
-        $MeshRoot/RightLeg.visible = false
 
 func _physics_process(delta):
     if health <= 0:
@@ -111,32 +99,38 @@ func shoot():
     var space_state = get_world_3d().direct_space_state
     var screen_center = get_viewport().get_visible_rect().size / 2
     var origin = camera.project_ray_origin(screen_center)
-    var end = origin + camera.project_ray_normal(screen_center) * 150
-    var query = PhysicsRayQueryParameters3D.create(origin, end)
-    query.exclude = [self.get_rid()]
-    var result = space_state.intersect_ray(query)
     
-    var tracer = MeshInstance3D.new()
-    var t_mesh = BoxMesh.new()
-    t_mesh.size = Vector3(0.05, 0.05, origin.distance_to(end))
-    tracer.mesh = t_mesh
-    var t_mat = StandardMaterial3D.new()
-    t_mat.albedo_color = Color(1, 1, 0.5, 0.8)
-    t_mat.emission_enabled = true
-    t_mat.emission = Color(1, 1, 0)
-    tracer.material_override = t_mat
-    get_tree().current_scene.add_child(tracer)
-    tracer.global_position = (origin + end) / 2
-    tracer.look_at(end, Vector3.UP)
-    get_tree().create_timer(0.1).timeout.connect(tracer.queue_free)
+    # Logika SMG (Menyebar 3 peluru) vs Pistol (1 peluru akurat)
+    var rays = 3 if weapon_mode == 1 else 1
+    for i in range(rays):
+        var spread = Vector2(randf_range(-5, 5), randf_range(-5, 5)) if weapon_mode == 1 else Vector2.ZERO
+        var end = origin + camera.project_ray_normal(screen_center + spread) * 150
+        
+        var query = PhysicsRayQueryParameters3D.create(origin, end)
+        query.exclude = [self.get_rid()]
+        var result = space_state.intersect_ray(query)
+        
+        var tracer = MeshInstance3D.new()
+        var t_mesh = BoxMesh.new()
+        t_mesh.size = Vector3(0.05, 0.05, origin.distance_to(end))
+        tracer.mesh = t_mesh
+        var t_mat = StandardMaterial3D.new()
+        t_mat.albedo_color = Color(1, 1, 0.5, 0.8)
+        t_mat.emission_enabled = true
+        t_mat.emission = Color(1, 1, 0)
+        tracer.material_override = t_mat
+        get_tree().current_scene.add_child(tracer)
+        tracer.global_position = (origin + end) / 2
+        tracer.look_at(end, Vector3.UP)
+        get_tree().create_timer(0.1).timeout.connect(tracer.queue_free)
+
+        if result and result.collider.has_method("take_damage"):
+            result.collider.take_damage(25)
 
     var main = get_node_or_null("../../Main")
     if main: 
         main.add_wanted_level()
         main.panic_pedestrians()
-
-    if result and result.collider.has_method("take_damage"):
-        result.collider.take_damage(50)
 
 func interact():
     if current_vehicle:
@@ -146,6 +140,12 @@ func interact():
             if global_position.distance_to(v.global_position) < 8.0:
                 current_vehicle = v
                 break
+
+func toggle_weapon():
+    weapon_mode = 1 if weapon_mode == 0 else 0
+    var main = get_node_or_null("../../Main")
+    if main:
+        main.hud_mission.text = "SENJATA: " + ("PISTOL" if weapon_mode == 0 else "SMG")
 
 func take_damage(amount: float):
     if armor > 0:
