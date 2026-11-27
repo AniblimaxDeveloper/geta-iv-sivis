@@ -13,7 +13,7 @@ func _ready():
     map_panel.visible = false
 
 func _input(event):
-    if event is InputEventScreenTouch:
+    if event is ScreenTouch:
         if event.pressed and event.position.x < 600 and touch_idx == -1:
             touch_idx = event.index
             center = event.position
@@ -32,7 +32,7 @@ func _input(event):
         elif not event.pressed and event.index == look_idx:
             look_idx = -1
 
-    if event is InputEventScreenDrag:
+    if event is ScreenDrag:
         if event.index == touch_idx:
             var diff = event.position - center
             if diff.length() > 100: diff = diff.normalized() * 100
@@ -42,7 +42,22 @@ func _input(event):
             player.camera_pivot.rotate_y(-event.relative.x * 0.01)
             player.camera_pivot.get_node("SpringArm3D").rotate_x(-event.relative.y * 0.01)
 
+# FUNGSI TOMBOL
 func _on_jump_btn_pressed(): player.jump()
 func _on_shoot_btn_pressed(): player.shoot()
 func _on_car_btn_pressed(): player.interact()
 func _on_map_btn_pressed(): map_panel.visible = not map_panel.visible
+
+# FUNGSI FAST TRAVEL
+func _on_travel_city(): 
+    player.position = Global.locations["KOTA METROPOLITAN"]
+    map_panel.visible = false
+func _on_travel_desert(): 
+    player.position = Global.locations["GURUN PASIR"]
+    map_panel.visible = false
+func _on_travel_snow(): 
+    player.position = Global.locations["HUTAN SALJU"]
+    map_panel.visible = false
+func _on_travel_beach(): 
+    player.position = Global.locations["PANTAI TROPIS"]
+    map_panel.visible = false

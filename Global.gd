@@ -1,10 +1,15 @@
 extends Node
 var player_name: String = "Jason_Duval"
-var player_level: int = 15
-var player_money: int = 248750
 var selected_char: int = 0
-var char_colors = [
-    Color(0.8, 0.1, 0.1), Color(0.1, 0.8, 0.1), Color(0.1, 0.1, 0.8),
-    Color(0.8, 0.8, 0.1), Color(0.8, 0.1, 0.8), Color(0.1, 0.8, 0.8),
-    Color(0.8, 0.5, 0.1), Color(0.5, 0.1, 0.8), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1)
-]
+var money: int = 250000
+var health: float = 100.0
+var armor: float = 50.0
+var stamina: float = 100.0
+
+# Daftar lokasi Fast Travel
+var locations = {
+    "KOTA METROPOLITAN": Vector3(500, 5, 500),
+    "GURUN PASIR": Vector3(-500, 5, 500),
+    "HUTAN SALJU": Vector3(-500, 5, -500),
+    "PANTAI TROPIS": Vector3(500, 5, -500)
+}
