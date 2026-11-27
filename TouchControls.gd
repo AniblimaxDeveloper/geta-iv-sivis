@@ -2,6 +2,7 @@ extends CanvasLayer
 @onready var j_base = $JoystickBase
 @onready var j_knob = $JoystickBase/JoystickKnob
 @onready var player = get_node("../Player")
+@onready var map_panel = $MapPanel
 var touch_idx = -1
 var look_idx = -1
 var center = Vector2.ZERO
@@ -9,6 +10,7 @@ var center = Vector2.ZERO
 func _ready():
     j_base.visible = false
     j_knob.visible = false
+    map_panel.visible = false
 
 func _input(event):
     if event is InputEventScreenTouch:
@@ -43,4 +45,4 @@ func _input(event):
 func _on_jump_btn_pressed(): player.jump()
 func _on_shoot_btn_pressed(): player.shoot()
 func _on_car_btn_pressed(): player.interact()
-func _on_weapon_btn_pressed(): player.toggle_weapon()
+func _on_map_btn_pressed(): map_panel.visible = not map_panel.visible
