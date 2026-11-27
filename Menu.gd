@@ -1,24 +1,33 @@
 extends Control
 
+@onready var main_ui = $MainUI
+@onready var settings_ui = $SettingsUI
+@onready var char_ui = $CharSelectUI
+
 func _ready():
-    $ProfilePanel/NameLabel.text = Global.player_name
-    $ProfilePanel/LevelLabel.text = "LEVEL " + str(Global.player_level)
-    $ProfilePanel/MoneyLabel.text = "$" + str(Global.player_money)
+    main_ui.visible = true
+    settings_ui.visible = false
+    char_ui.visible = false
 
 func _on_new_game_pressed():
     get_tree().change_scene_to_file("res://Main.tscn")
 
-func _on_quit_pressed():
+func _on_settings_pressed():
+    main_ui.visible = false
+    settings_ui.visible = true
+
+func _on_char_select_pressed():
+    main_ui.visible = false
+    char_ui.visible = true
+
+func _on_back_pressed():
+    main_ui.visible = true
+    settings_ui.visible = false
+    char_ui.visible = false
+
+func _on_exit_pressed():
     get_tree().quit()
 
-func _on_settings_pressed():
-    $Popup.visible = true
-    await get_tree().create_timer(2.0).timeout
-    $Popup.visible = false
-
-func _on_online_pressed():
-    $Popup/Label.text = "CONNECTING TO DELTVA ONLINE..."
-    $Popup.visible = true
-    await get_tree().create_timer(2.0).timeout
-    $Popup.visible = false
-    $Popup/Label.text = "SERVER OFFLINE"
+func _on_char_chosen(index: int):
+    Global.selected_char = index
+    $CharSelectUI/StatusLabel.text = "Karakter " + str(index + 1) + " Dipilih"

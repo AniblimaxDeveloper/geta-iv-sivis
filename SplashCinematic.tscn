@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://SplashCinematic.gd" id="1_splash"]
+
+[node name="Splash" type="Node3D"]
+script = ExtResource("1_splash")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, -150)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.8, 0, -0.8, 0.5, 0, 50, 0)
+light_color = Color(1, 0.4, 0.6, 1)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="TitleLabel" type="Label" parent="UI"]
+offset_left = 0.0
+offset_top = 200.0
+offset_right = 1280.0
+offset_bottom = 350.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 120
+text = "DELTVA IV"
+horizontal_alignment = 1
+
+[node name="SkipButton" type="Button" parent="UI"]
+offset_left = 1150.0
+offset_top = 650.0
+offset_right = 1250.0
+offset_bottom = 700.0
+text = "SKIP"
+
+[connection signal="pressed" from="UI/SkipButton" to="." method="_on_skip_pressed"]
